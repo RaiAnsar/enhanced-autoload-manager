@@ -2,8 +2,8 @@
 Contributors: raianasar
 Tags: autoload, performance, optimization, database cleanup, autoload manager
 Requires at least: 5.0
-Tested up to: 6.5
-Stable tag: 1.2
+Tested up to: 6.7
+Stable tag: 1.4
 License: GPLv3 or later
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
@@ -17,10 +17,18 @@ With the Enhanced Autoload Manager, you'll get a clear overview of the top autol
 Beyond managing individual entries, Enhanced Autoload Manager also displays the total size of all autoloaded data, giving you a better sense of your site's autoload footprint.
 
 == Features ==
-- List top 20 autoloaded data entries sorted by size.
+- List autoloaded data entries sorted by size with configurable limit options.
+- Search functionality to find specific autoload options.
+- Pagination for easier navigation through large datasets.
+- Export and import autoload settings for backup or site migration.
+- Confirmation dialogs before deleting or disabling options.
+- Refresh button to update autoload data without reloading the page.
 - Display data size in a readable format (KB and MB).
 - One-click action buttons to delete or disable autoload options.
 - Total autoloaded data size display on the plugin page.
+- Option to view autoload entry contents via expand button.
+- Filter options by core WordPress, WooCommerce, or Elementor.
+- Mobile-responsive design for better usability on all devices.
 - Simple, modern, and intuitive interface with no dependencies on external libraries.
 
 == Installation ==
@@ -36,8 +44,19 @@ No, it's simple to use. Install and navigate to the Tools menu to start optimizi
 Always make sure to backup your database before deleting data. While the plugin is safe to use, caution is always recommended.
 
 == Changelog ==
+= 1.4 =
+* Added search functionality to find specific autoload options.
+* Implemented pagination for easier navigation through large datasets.
+* Added confirmation dialogs before deleting or disabling options.
+* Added export and import functionality for autoload settings.
+* Added refresh button to update autoload data without page reload.
+* Improved cache handling for better performance.
+* Added support for mobile devices with responsive design.
+* Fixed version inconsistencies across plugin files.
+
 = 1.3 =
-* Added WordPress Nonce for extra layer of security
+* Added WordPress Nonce for extra layer of security.
+
 = 1.2 =
 * Added total autoload size display.
 * Enhanced the user interface for modern and aesthetic look.

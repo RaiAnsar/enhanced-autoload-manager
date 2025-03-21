@@ -1,42 +1,377 @@
-/* Styles for Enhanced Autoload Manager */
-.eal-button {
+/* Styles for Enhanced Autoload Manager v1.4 */
+.edal-button {
     display: inline-block;
     text-decoration: none;
-    padding: 6px 12px;
-    margin-right: 4px;
-    border-radius: 4px;
-    transition: background-color 0.3s ease;
+    padding: 8px 16px; /* Increased padding for better touch targets */
+    margin-right: 6px; /* Slightly increased margin for better spacing */
+    border-radius: 5px; /* Slightly more rounded corners */
+    transition: background-color 0.3s ease, box-shadow 0.3s ease; /* Added box-shadow transition */
     color: #fff;
     text-align: center;
     vertical-align: middle;
-  }
-  
-  /* Maintains the text color on hover for all buttons */
-  .eal-button:hover,
-  .eal-button-delete:hover,
-  .eal-button-disable:hover {
-    color: #fff !important; /* Add !important to override any other styles */
-  }
-  
-  .eal-button-delete {
+    font-weight: 600; /* Added bold text for better readability */
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); /* Added subtle shadow for depth */
+}
+
+.edal-button:hover,
+.edal-button-delete:hover,
+.edal-button-disable:hover {
+    color: #fff !important; /* Maintain text color on hover */
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2); /* Enhanced shadow on hover */
+}
+
+.edal-button-delete {
     background-color: #dc3545;
-  }
-  
-  .eal-button-delete:hover {
+}
+
+.edal-button-delete:hover {
     background-color: #c82333;
-  }
-  
-  .eal-button-disable {
+}
+
+.edal-button-disable {
     background-color: #007bff;
-  }
-  
-  .eal-button-disable:hover {
+}
+
+.edal-button-disable:hover {
     background-color: #0069d9;
-  }
-  
-  /* Centering the action buttons */
-  th, td {
+}
+
+/* Centering the action buttons */
+th, td {
     text-align: left;
     vertical-align: middle;
-  }
-  
+    padding: 10px 15px; /* Added padding for better spacing */
+}
+
+/* Table enhancements */
+.wp-list-table {
+    border-collapse: separate;
+    border-spacing: 0;
+    width: 100%;
+    background: #fff;
+    border: 1px solid #e0e0e0;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05); /* Subtle shadow for depth */
+    border-radius: 8px; /* Rounded corners for the table */
+    overflow: hidden; /* Ensure rounded corners are visible */
+}
+
+.wp-list-table th {
+    background-color: #f9f9f9;
+    font-weight: bold;
+    border-bottom: 2px solid #e0e0e0;
+}
+
+.wp-list-table td {
+    border-bottom: 1px solid #e0e0e0;
+}
+
+.wp-list-table tr:hover {
+    background-color: #f1f1f1; /* Row highlight on hover */
+}
+
+/* Modal styles */
+.option-value-modal {
+    display: none;
+    position: fixed;
+    z-index: 9999;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0, 0, 0, 0.4); /* Semi-transparent background */
+}
+
+.option-value-content {
+    background-color: #fff;
+    margin: 10% auto;
+    padding: 20px;
+    border: 1px solid #888;
+    width: 80%;
+    max-width: 600px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+    position: relative;
+    overflow-wrap: break-word; /* Ensure long text wraps within the box */
+}
+
+.option-value-content pre {
+    white-space: pre-wrap; /* Ensure long text wraps within the <pre> */
+}
+
+.close {
+    color: #aaa;
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+    cursor: pointer; /* Add cursor pointer for better UX */
+}
+
+.close:hover,
+.close:focus {
+    color: #000;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+/* Additional styles for material design */
+.edal-notice {
+    background-color: #ffeb3b;
+    padding: 16px;
+    border-left: 6px solid #fdd835;
+    border-radius: 4px;
+    font-size: 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    animation: fadeOut 1s ease-in 10s forwards;
+}
+
+@keyframes fadeOut {
+    0% {
+        opacity: 1;
+    }
+    100% {
+        opacity: 0;
+        display: none;
+    }
+}
+
+.edal-dismiss {
+    background: none;
+    border: none;
+    font-size: 20px;
+    cursor: pointer;
+    color: #555;
+}
+
+.edal-total-size {
+    font-size: 20px;
+    font-weight: bold;
+    margin-top: 20px;
+    margin-bottom: 20px;
+}
+
+.edal-nav-tab-wrapper {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 20px;
+}
+
+.edal-tab-section {
+    display: flex;
+}
+
+.nav-tab {
+    padding: 10px 20px;
+    border-radius: 5px;
+    background-color: #f1f1f1;
+    color: #0073aa;
+    text-decoration: none;
+    font-weight: bold;
+    transition: all 0.3s ease;
+    margin: 0 4px;
+    border: 1px solid #ddd;
+}
+
+/* Different colors for different tab types */
+.edal-tab-section:nth-child(1) .nav-tab {
+    background-color: #f8f8f8;
+    border-color: #e0e0e0;
+}
+
+.edal-tab-section:nth-child(1) .nav-tab-active {
+    background-color: #4CAF50;
+    color: #fff;
+    border-color: #4CAF50;
+}
+
+.edal-tab-section:nth-child(2) .nav-tab {
+    background-color: #f5f5f5;
+    border-color: #d5d5d5;
+}
+
+.edal-tab-section:nth-child(2) .nav-tab-active {
+    background-color: #2196F3;
+    color: #fff;
+    border-color: #2196F3;
+}
+
+.edal-tab-section:nth-child(3) .nav-tab {
+    background-color: #f2f2f2;
+    border-color: #d0d0d0;
+}
+
+.edal-tab-section:nth-child(3) .nav-tab-active {
+    background-color: #FF9800;
+    color: #fff;
+    border-color: #FF9800;
+}
+
+.spacer {
+    margin-bottom: 20px;
+}
+
+/* New styles for v1.4 */
+.edal-header-actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin: 20px 0;
+    flex-wrap: wrap;
+    background-color: #fff;
+    padding: 15px;
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.08);
+}
+
+.edal-total-info {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.edal-tools {
+    display: flex;
+    gap: 15px;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.edal-search-box {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.edal-search-box input {
+    width: 240px;
+    padding: 8px 15px;
+    border-radius: 4px 0 0 4px;
+    border: 1px solid #ddd;
+    height: 38px;
+}
+
+.edal-search-box button {
+    border-radius: 0 4px 4px 0;
+    margin-left: -1px;
+    height: 38px;
+    width: 38px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.edal-import-export {
+    display: flex;
+    gap: 10px;
+}
+
+.edal-pagination {
+    margin: 20px 0;
+    text-align: center;
+}
+
+.edal-pagination .button {
+    margin: 0 3px;
+    min-width: 30px;
+    text-align: center;
+}
+
+.pagination-ellipsis {
+    display: inline-block;
+    padding: 5px;
+}
+
+.edal-status {
+    margin: 15px 0;
+    min-height: 30px;
+}
+
+.edal-success-message {
+    color: #28a745;
+    padding: 8px 12px;
+    background-color: #d4edda;
+    border-radius: 4px;
+    display: inline-block;
+}
+
+.edal-error-message {
+    color: #dc3545;
+    padding: 8px 12px;
+    background-color: #f8d7da;
+    border-radius: 4px;
+    display: inline-block;
+}
+
+.edal-spin {
+    animation: edal-spin 2s infinite linear;
+    display: inline-block;
+}
+
+@keyframes edal-spin {
+    0% {
+        transform: rotate(0deg);
+    }
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+.import-controls {
+    margin: 20px 0;
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+#import-status {
+    margin-top: 15px;
+    min-height: 30px;
+}
+
+/* Dashboard icon styles */
+.dashicons {
+    vertical-align: middle;
+    font-size: 18px;
+    width: 18px;
+    height: 18px;
+    margin-right: 5px;
+}
+
+/* Make the buttons more prominent */
+#edal-refresh-data,
+#edal-export-btn,
+#edal-import-btn,
+#import-submit {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    padding: 8px 15px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+/* Responsive design */
+@media screen and (max-width: 782px) {
+    .edal-header-actions {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    .edal-total-info,
+    .edal-tools {
+        margin-bottom: 15px;
+        width: 100%;
+    }
+    
+    .edal-search-box input {
+        width: 100%;
+    }
+    
+    .edal-tab-section {
+        flex-wrap: wrap;
+    }
+}
