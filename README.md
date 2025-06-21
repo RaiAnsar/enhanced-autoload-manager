@@ -104,9 +104,13 @@ cp -r enhanced-autoload-manager ./
 
 ## 📸 Screenshots
 
-1. **Main Interface** - Clean, modern dashboard showing autoload data
-2. **Expert Mode Warning** - Safety notification with dismissible design  
-3. **Navigation Tabs** - Intuitive filtering and pagination controls
+<div align="center">
+  <img src="assets/screenshot-1.png" alt="Main Interface" width="45%" />
+  <img src="assets/screenshot-2.png" alt="Expert Mode Warning" width="45%" />
+</div>
+
+1. **Main Interface** - Clean, modern dashboard showing autoload data with search functionality and action buttons
+2. **Expert Mode Warning** - Safety notification with modern styling and dismissible design
 
 ## 🤝 Contributing
 
