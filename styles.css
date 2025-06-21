@@ -1,0 +1,1030 @@
+/* Styles for Enhanced Autoload Manager v1.5.2 */
+/* Scope all styles to prevent conflicts with WordPress admin */
+.tools_page_enhanced-autoload-manager {
+    
+    /* Header Layout */
+    .edal-header-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 20px;
+        margin: 20px 0;
+        padding: 15px 20px;
+        background: #fff;
+        border: 1px solid #c3c4c7;
+        border-radius: 4px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+
+    .edal-left-section, .edal-right-section {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        flex-shrink: 0;
+    }
+
+    .edal-center-section {
+        flex: 1;
+        max-width: 500px;
+        min-width: 300px;
+    }
+
+    /* Search Container */
+    .edal-search-container {
+        width: 100%;
+    }
+
+    .edal-search-input-wrapper {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        background: #fff;
+        border: 1px solid #8c8f94;
+        border-radius: 4px;
+        padding: 2px;
+        box-shadow: 0 0 0 transparent;
+        transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+    }
+
+    .edal-search-input-wrapper:focus-within {
+        border-color: #2271b1;
+        box-shadow: 0 0 0 1px #2271b1;
+    }
+
+    .edal-search-input-wrapper input[type="text"] {
+        flex: 1;
+        border: none !important;
+        box-shadow: none !important;
+        margin: 0 !important;
+        padding: 8px 12px !important;
+        min-height: 30px;
+        font-size: 14px;
+    }
+
+    .edal-search-input-wrapper input[type="text"]:focus {
+        outline: none;
+        box-shadow: none !important;
+    }
+
+    .edal-search-input-wrapper .button {
+        margin: 0;
+        border-radius: 3px;
+        height: auto;
+        padding: 6px 10px;
+    }
+
+    /* Total Size Display */
+    .edal-total-size {
+        margin: 0 !important;
+        font-size: 14px;
+        font-weight: 600;
+        color: #1d2327;
+    }
+
+    /* Button Improvements */
+    .edal-button {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 6px 12px;
+        border-radius: 4px;
+        font-size: 13px;
+        line-height: 1.4;
+        font-weight: 500;
+        text-decoration: none;
+        transition: all 0.2s ease;
+        border: 1px solid;
+        cursor: pointer;
+        white-space: nowrap;
+    }
+
+    .edal-button .dashicons {
+        font-size: 16px;
+        width: 16px;
+        height: 16px;
+        margin: 0;
+    }
+
+    .edal-button-delete {
+        background: #fff;
+        border-color: #dc3545;
+        color: #dc3545;
+    }
+
+    .edal-button-delete:hover {
+        background: #dc3545;
+        border-color: #dc3545;
+        color: #fff !important;
+    }
+
+    .edal-button-disable {
+        background: #fff;
+        border-color: #2271b1;
+        color: #2271b1;
+    }
+
+    .edal-button-disable:hover {
+        background: #2271b1;
+        border-color: #2271b1;
+        color: #fff !important;
+    }
+
+    .edal-button-enable {
+        background: #fff;
+        border-color: #28a745;
+        color: #28a745;
+    }
+
+    .edal-button-enable:hover {
+        background: #28a745;
+        border-color: #28a745;
+        color: #fff !important;
+    }
+
+    .edal-button-expand {
+        background: #fff;
+        border-color: #6c757d;
+        color: #6c757d;
+    }
+
+    .edal-button-expand:hover {
+        background: #6c757d;
+        border-color: #6c757d;
+        color: #fff !important;
+    }
+
+    /* Table styles */
+    .wp-list-table {
+        border-collapse: separate;
+        border-spacing: 0;
+        width: 100%;
+        background: #fff;
+        border: 1px solid #e0e0e0;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        border-radius: 8px;
+        overflow: hidden;
+    }
+
+    .wp-list-table th {
+        background-color: #f9f9f9;
+        font-weight: bold;
+        border-bottom: 2px solid #e0e0e0;
+        text-align: left;
+        vertical-align: middle;
+        padding: 10px 15px;
+    }
+
+    .wp-list-table td {
+        border-bottom: 1px solid #e0e0e0;
+        text-align: left;
+        vertical-align: middle;
+        padding: 10px 15px;
+    }
+
+    .wp-list-table tr:hover {
+        background-color: #f1f1f1;
+    }
+
+    /* Modal styles */
+    .option-value-modal {
+        display: none;
+        position: fixed;
+        z-index: 9999;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        overflow: auto;
+        background-color: rgba(0, 0, 0, 0.4);
+    }
+
+    .option-value-content {
+        background-color: #fff;
+        margin: 10% auto;
+        padding: 20px;
+        border: 1px solid #888;
+        width: 80%;
+        max-width: 600px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        border-radius: 8px;
+        position: relative;
+        overflow-wrap: break-word;
+    }
+
+    .option-value-content pre {
+        white-space: pre-wrap;
+        max-height: 70vh;
+        overflow-y: auto;
+        padding: 15px;
+        background: #f5f5f5;
+        border-radius: 4px;
+    }
+
+    .close {
+        color: #aaa;
+        float: right;
+        font-size: 28px;
+        font-weight: bold;
+        cursor: pointer;
+        position: absolute;
+        right: 15px;
+        top: 10px;
+    }
+
+    .close:hover,
+    .close:focus {
+        color: #000;
+        text-decoration: none;
+        cursor: pointer;
+    }
+
+    /* Notice styles - Modern warning design */
+    .edal-notice {
+        background: linear-gradient(135deg, #fff8e1 0%, #ffecb3 100%);
+        border: 1px solid #ffc107;
+        border-left: 4px solid #ff9800;
+        border-radius: 8px;
+        padding: 20px 24px;
+        margin: 20px 0;
+        box-shadow: 0 2px 8px rgba(255, 193, 7, 0.1);
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        position: relative;
+        font-size: 14px;
+        line-height: 1.5;
+    }
+
+    .edal-notice::before {
+        content: "\f534";
+        font-family: dashicons;
+        font-size: 20px;
+        color: #ff9800;
+        flex-shrink: 0;
+        width: 20px;
+        height: 20px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .edal-notice p {
+        margin: 0;
+        flex: 1;
+        color: #8a6914;
+        font-weight: 500;
+    }
+
+    /* Style WordPress default dismiss button to match our design */
+    .edal-notice .notice-dismiss {
+        position: absolute;
+        top: 50%;
+        right: 16px;
+        transform: translateY(-50%);
+        background: rgba(255, 152, 0, 0.1);
+        border: 1px solid rgba(255, 152, 0, 0.3);
+        border-radius: 50%;
+        width: 32px;
+        height: 32px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        color: #ff9800;
+        font-size: 16px;
+        transition: all 0.2s ease;
+        padding: 0;
+        margin: 0;
+    }
+
+    .edal-notice .notice-dismiss:hover {
+        background: rgba(255, 152, 0, 0.2);
+        border-color: rgba(255, 152, 0, 0.5);
+        color: #f57c00;
+        transform: translateY(-50%) scale(1.05);
+    }
+
+    .edal-notice .notice-dismiss:before {
+        background: none;
+        color: inherit;
+        content: "\f153";
+        display: block;
+        font: normal 16px/20px dashicons;
+        speak: never;
+        height: 20px;
+        text-align: center;
+        width: 20px;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+    }
+
+    /* Responsive warning for mobile */
+    @media screen and (max-width: 782px) {
+        .edal-notice {
+            padding: 16px 20px;
+            gap: 12px;
+        }
+
+        .edal-notice::before {
+            font-size: 18px;
+        }
+
+        .edal-dismiss {
+            width: 28px;
+            height: 28px;
+            font-size: 14px;
+        }
+
+        .edal-notice p {
+            font-size: 13px;
+        }
+    }
+
+    /* Header actions */
+    .edal-header-actions {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin: 20px 0;
+        padding: 15px 20px;
+        background: #fff;
+        border: 1px solid #e2e4e7;
+        border-radius: 4px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    }
+
+    .edal-total-info {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        min-width: 250px;
+    }
+
+    .edal-total-size {
+        font-size: 14px;
+        font-weight: 500;
+        color: #1e1e1e;
+        margin: 0;
+        padding: 6px 12px;
+        background: #f0f0f1;
+        border-radius: 4px;
+        display: flex;
+        align-items: center;
+    }
+
+    .edal-total-size::before {
+        content: "\f239";
+        font-family: dashicons;
+        margin-right: 8px;
+        color: #2271b1;
+        font-size: 16px;
+    }
+
+    #edal-refresh-data {
+        height: 32px;
+        padding: 0 12px;
+        line-height: 30px;
+        font-size: 13px;
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        min-width: 120px;
+        justify-content: center;
+    }
+
+    .edal-tools {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        flex: 1;
+        justify-content: flex-end;
+        min-width: 0;
+        flex-wrap: nowrap;
+    }
+
+    .edal-search-box {
+        position: relative;
+        display: flex;
+        align-items: center;
+        width: 220px;
+        min-width: 200px;
+        margin-right: 10px;
+    }
+
+    .edal-search-box input[type="text"] {
+        width: 100%;
+        height: 32px;
+        padding: 6px 32px 6px 12px;
+        font-size: 13px;
+        border: 1px solid #e2e4e7;
+        border-radius: 4px;
+        margin: 0;
+    }
+
+    .edal-search-box button {
+        position: absolute;
+        right: 1px;
+        top: 1px;
+        bottom: 1px;
+        width: 32px;
+        padding: 0;
+        background: transparent;
+        border: none;
+        color: #757575;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+    }
+
+    .edal-import-export {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex-shrink: 0;
+        margin-left: auto;
+    }
+
+    .edal-import-export .button {
+        height: 32px;
+        padding: 0 12px;
+        line-height: 30px;
+        font-size: 13px;
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        background: #fff;
+        border-color: #e2e4e7;
+        color: #1e1e1e;
+        min-width: 120px;
+        justify-content: center;
+        flex-shrink: 0;
+    }
+
+    @media screen and (max-width: 782px) {
+        .edal-header-actions {
+            flex-direction: column;
+            gap: 15px;
+            padding: 12px;
+        }
+
+        .edal-total-info {
+            width: 100%;
+            justify-content: space-between;
+        }
+
+        .edal-tools {
+            width: 100%;
+            flex-direction: column;
+            gap: 10px;
+            align-items: stretch;
+        }
+
+        .edal-search-box {
+            width: 100%;
+            margin-right: 0;
+            min-width: 0;
+        }
+
+        .edal-import-export {
+            width: 100%;
+            margin-left: 0;
+            justify-content: space-between;
+        }
+
+        .edal-import-export .button {
+            flex: 1;
+            min-width: 0;
+        }
+    }
+    
+    /* Refresh button loading state */
+    #edal-refresh-data.refreshing {
+        opacity: 0.7;
+        cursor: wait;
+    }
+
+    #edal-refresh-data.refreshing .dashicons {
+        animation: edal-spin 1s linear infinite;
+    }
+
+    @keyframes edal-spin {
+        from { transform: rotate(0deg); }
+        to { transform: rotate(360deg); }
+    }
+
+    /* Status badges in header */
+    .edal-header-badge {
+        display: inline-flex;
+        align-items: center;
+        padding: 4px 8px;
+        border-radius: 3px;
+        font-size: 12px;
+        font-weight: 500;
+        background: #f0f0f1;
+        color: #1e1e1e;
+    }
+
+    .edal-header-badge .dashicons {
+        font-size: 14px;
+        width: 14px;
+        height: 14px;
+        margin-right: 4px;
+    }
+    
+    /* Improve spacing and alignment */
+    .edal-header-group {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .edal-divider {
+        width: 1px;
+        height: 24px;
+        background: #e2e4e7;
+        margin: 0 4px;
+    }
+
+    /* Tools section */
+    .edal-tools {
+        display: flex;
+        gap: 15px;
+        align-items: center;
+        flex-wrap: wrap;
+    }
+
+    /* Pagination */
+    .edal-pagination {
+        margin-top: 20px;
+        display: flex;
+        justify-content: center;
+        gap: 5px;
+        flex-wrap: wrap;
+    }
+
+    .edal-pagination .button {
+        margin: 0 2px;
+        padding: 5px 10px;
+    }
+
+    .pagination-ellipsis {
+        padding: 5px 10px;
+        color: #666;
+    }
+
+    /* Status messages */
+    .edal-status {
+        margin-top: 20px;
+        text-align: center;
+    }
+
+    .edal-success-message {
+        color: #155724;
+        background-color: #d4edda;
+        border: 1px solid #c3e6cb;
+        padding: 10px 15px;
+        border-radius: 4px;
+        display: inline-block;
+    }
+
+    .edal-error-message {
+        color: #721c24;
+        background-color: #f8d7da;
+        border: 1px solid #f5c6cb;
+        padding: 10px 15px;
+        border-radius: 4px;
+        display: inline-block;
+    }
+
+    /* Loading spinner */
+    .edal-spin {
+        animation: edal-spin 1s linear infinite;
+    }
+
+    @keyframes edal-spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+
+    /* Import controls */
+    .import-controls {
+        display: flex;
+        gap: 10px;
+        margin-top: 15px;
+    }
+
+    #import-status {
+        margin-top: 15px;
+        text-align: center;
+    }
+
+    /* Icons */
+    .dashicons {
+        vertical-align: middle;
+        margin-right: 5px;
+    }
+
+    /* Bulk Actions */
+    .bulkactions {
+        margin-bottom: 10px;
+    }
+    
+    .bulkactions select {
+        margin-right: 5px;
+    }
+    
+    .selected-count {
+        margin-left: 10px;
+        color: #666;
+        font-style: italic;
+    }
+    
+    /* Sorting */
+    .sortable {
+        cursor: pointer;
+        position: relative;
+    }
+    
+    .sortable a {
+        display: block;
+        padding-right: 20px;
+        position: relative;
+    }
+    
+    .sortable .sorting-indicator {
+        position: absolute;
+        right: 5px;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 10px;
+        height: 10px;
+        opacity: 0;
+    }
+    
+    .sortable.sorted .sorting-indicator {
+        opacity: 1;
+    }
+    
+    .sortable.sorted.asc .sorting-indicator:before {
+        content: "\25B2";
+    }
+    
+    .sortable.sorted.desc .sorting-indicator:before {
+        content: "\25BC";
+    }
+    
+    /* Expanded Row */
+    .expanded-row {
+        background-color: #f9f9f9;
+    }
+    
+    .expanded-content {
+        padding: 15px;
+        max-height: 300px;
+        overflow-y: auto;
+    }
+    
+    .expanded-content pre {
+        margin: 0;
+        white-space: pre-wrap;
+        word-wrap: break-word;
+        font-family: monospace;
+        font-size: 12px;
+        line-height: 1.4;
+    }
+    
+    /* Tab Navigation */
+    .edal-nav-tab-wrapper {
+        margin: 20px 0;
+        padding: 12px;
+        display: flex;
+        align-items: center;
+        gap: 20px;
+        background: #fff;
+        border: 1px solid #e2e4e7;
+        border-radius: 4px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    }
+
+    .edal-tab-section {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        position: relative;
+    }
+
+    .edal-tab-section:not(:last-child)::after {
+        content: "";
+        position: absolute;
+        right: -10px;
+        top: 50%;
+        transform: translateY(-50%);
+        height: 24px;
+        width: 1px;
+        background: #e2e4e7;
+    }
+
+    /* Mode tabs (Basic/Expert) */
+    .edal-tab-section.mode-tabs .nav-tab {
+        color: #1e1e1e;
+        font-weight: 500;
+        padding: 6px 12px;
+        background: transparent;
+        border: 1px solid transparent;
+    }
+
+    .edal-tab-section.mode-tabs .nav-tab-active {
+        background: #f0f6fc;
+        color: #2271b1;
+        border-color: #2271b1;
+    }
+
+    .edal-tab-section.mode-tabs .nav-tab:hover {
+        background: #f6f7f7;
+    }
+
+    /* Plugin-specific tabs */
+    .edal-tab-section.plugin-tabs .nav-tab {
+        color: #1e1e1e;
+        background: transparent;
+        border: 1px solid transparent;
+    }
+
+    .edal-tab-section.plugin-tabs .nav-tab-active {
+        background: #fcf9e8;
+        color: #996800;
+        border-color: #dba617;
+    }
+
+    .edal-tab-section.plugin-tabs .nav-tab:hover {
+        background: #fff8e5;
+    }
+
+    /* Filter tabs (All/Disabled) */
+    .edal-tab-section.filter-tabs .nav-tab {
+        color: #1e1e1e;
+        background: transparent;
+        border: 1px solid transparent;
+    }
+
+    .edal-tab-section.filter-tabs .nav-tab-active {
+        background: #edfaef;
+        color: #116329;
+        border-color: #28a745;
+    }
+
+    .edal-tab-section.filter-tabs .nav-tab:hover {
+        background: #f6f8fa;
+    }
+
+    /* Count tabs */
+    .edal-tab-section.count-tabs {
+        margin-left: auto;
+    }
+
+    .edal-tab-section.count-tabs .nav-tab {
+        color: #1e1e1e;
+        background: transparent;
+        border: 1px solid transparent;
+        min-width: 40px;
+        text-align: center;
+        padding: 6px 10px;
+    }
+
+    .edal-tab-section.count-tabs .nav-tab-active {
+        background: #f6f8fa;
+        color: #24292f;
+        border-color: #d0d7de;
+    }
+
+    .edal-tab-section.count-tabs .nav-tab:hover {
+        background: #f3f4f6;
+    }
+
+    /* Common tab styles */
+    .nav-tab {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 13px;
+        line-height: 1.4;
+        margin: 0;
+        padding: 6px 12px;
+        text-decoration: none;
+        border-radius: 6px;
+        transition: all 0.2s ease;
+        white-space: nowrap;
+    }
+
+    .nav-tab:hover {
+        opacity: 1;
+        transform: none;
+    }
+
+    .nav-tab .dashicons {
+        font-size: 16px;
+        width: 16px;
+        height: 16px;
+        margin: 0;
+    }
+
+    /* Tab section labels - convert to subtle prefixes */
+    .edal-tab-label {
+        font-size: 12px;
+        color: #6e7781;
+        font-weight: 500;
+        margin-right: 8px;
+    }
+
+    /* Status badges */
+    .edal-status-badge {
+        display: inline-flex;
+        align-items: center;
+        padding: 1px 8px;
+        border-radius: 10px;
+        font-size: 12px;
+        font-weight: 500;
+        margin-left: 6px;
+    }
+
+    .edal-status-badge.disabled {
+        background-color: #ffd7d7;
+        color: #cf222e;
+    }
+
+    .edal-status-badge.enabled {
+        background-color: #dafbe1;
+        color: #116329;
+    }
+
+    /* Footer Credit Styling */
+    .edal-footer-credit {
+        margin-top: 40px;
+        padding: 20px;
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        border: 1px solid #dee2e6;
+        border-radius: 8px;
+        text-align: center;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    .edal-footer-credit p {
+        margin: 0 0 8px 0;
+        color: #495057;
+        font-size: 14px;
+        line-height: 1.5;
+    }
+
+    .edal-footer-credit .edal-services {
+        font-size: 12px;
+        color: #6c757d;
+        font-style: italic;
+        margin: 8px 0 0 0;
+    }
+
+    .edal-footer-credit a {
+        color: #2271b1;
+        text-decoration: none;
+        font-weight: 500;
+    }
+
+    .edal-footer-credit a:hover {
+        color: #135e96;
+        text-decoration: underline;
+    }
+
+    .edal-footer-credit strong {
+        color: #1d2327;
+    }
+
+    /* Responsive adjustments */
+    @media screen and (max-width: 782px) {
+        .edal-nav-tab-wrapper {
+            flex-direction: column;
+            gap: 12px;
+            padding: 12px;
+        }
+
+        .edal-tab-section {
+            width: 100%;
+            justify-content: flex-start;
+            flex-wrap: wrap;
+        }
+
+        .edal-tab-section:not(:last-child)::after {
+            display: none;
+        }
+
+        .edal-tab-section.count-tabs {
+            margin-left: 0;
+        }
+
+        .nav-tab {
+            flex: 1;
+            justify-content: center;
+        }
+    }
+
+    /* Table Improvements */
+    .wp-list-table {
+        border: 1px solid #ccd0d4;
+        box-shadow: 0 1px 1px rgba(0,0,0,.04);
+        margin-top: 20px;
+    }
+
+    .wp-list-table th {
+        font-weight: 600;
+        padding: 12px;
+    }
+
+    .wp-list-table td {
+        padding: 12px;
+        vertical-align: middle;
+    }
+
+    .wp-list-table tr:hover {
+        background-color: #f6f7f7;
+    }
+
+    /* Bulk Actions */
+    .bulkactions {
+        margin-bottom: 15px;
+    }
+
+    .bulkactions select {
+        margin-right: 5px;
+    }
+
+    /* Search Box */
+    .edal-search-box {
+        margin-bottom: 15px;
+    }
+
+    .edal-search-box input[type="text"] {
+        width: 300px;
+        padding: 6px 8px;
+        border: 1px solid #ccd0d4;
+        border-radius: 4px;
+    }
+
+    /* Status Messages */
+    .edal-status {
+        margin-top: 15px;
+        padding: 10px;
+        border-radius: 4px;
+    }
+
+    .edal-status-success {
+        background-color: #d4edda;
+        border: 1px solid #c3e6cb;
+        color: #155724;
+    }
+
+    .edal-status-error {
+        background-color: #f8d7da;
+        border: 1px solid #f5c6cb;
+        color: #721c24;
+    }
+
+    /* Modal Improvements */
+    .option-value-modal {
+        background-color: rgba(0, 0, 0, 0.7);
+    }
+
+    .option-value-content {
+        background: #fff;
+        border-radius: 8px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        padding: 20px;
+        max-width: 80%;
+        max-height: 80vh;
+        overflow: auto;
+    }
+
+    .option-value-content pre {
+        background: #f8f9fa;
+        border: 1px solid #dee2e6;
+        border-radius: 4px;
+        padding: 15px;
+        margin: 10px 0;
+        overflow-x: auto;
+        font-size: 13px;
+        line-height: 1.5;
+    }
+
+    .close {
+        color: #6c757d;
+        font-size: 24px;
+        font-weight: bold;
+        position: absolute;
+        right: 15px;
+        top: 10px;
+        cursor: pointer;
+        transition: color 0.2s ease;
+    }
+
+    .close:hover {
+        color: #343a40;
+    }
+}
