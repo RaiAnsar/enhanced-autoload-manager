@@ -505,9 +505,8 @@ class Enhanced_Autoload_Manager {
         <div class="edal-footer-credit">
             <p><?php 
                 printf(
-                    /* translators: 1: WordPress link, 2: Developer name, 3: Developer email */
-                    __('Thank you for creating with %1$s | Need custom WordPress plugins, WooCommerce sites, or server optimization? Contact %2$s at %3$s', 'enhanced-autoload-manager'),
-                    '<a href="https://wordpress.org/" target="_blank">WordPress</a>',
+                    /* translators: 1: Developer name, 2: Developer email */
+                    __('Need custom WordPress plugins, WooCommerce sites, or server optimization? Contact %1$s at %2$s', 'enhanced-autoload-manager'),
                     '<strong>Rai Ansar</strong>',
                     '<a href="mailto:hi@raiansar.com">hi@raiansar.com</a>'
                 );
