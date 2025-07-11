@@ -1,0 +1,39 @@
+# WordPress Plugin Files
+*.log
+*.sql
+*.sqlite
+
+# OS Files
+.DS_Store
+Thumbs.db
+
+# Editor Files
+*.swp
+*.swo
+*~
+.vscode/
+.idea/
+
+# Build Files
+node_modules/
+vendor/
+dist/
+build/
+
+# Sensitive Files
+credentials.md
+.env
+.env.local
+svn-credentials.txt
+
+# SVN Files
+.svn/
+enhanced-autoload-manager-svn/
+
+# Temporary Files
+*.tmp
+*.bak
+*.cache
+
+# ZIP Files
+*.zip
