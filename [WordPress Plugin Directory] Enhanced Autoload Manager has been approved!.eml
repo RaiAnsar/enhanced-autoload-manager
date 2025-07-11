@@ -1,0 +1,169 @@
+Return-Path: <srs0=teua=zx=wp.com=bounce@wordpress.org>
+Delivered-To: hi@raiansar.com
+Received: from smtp1.ord.wordpress.org (smtp1.ord.wordpress.org [198.143.164.146])
+	by fr-int-smtpin11.hostinger.io (mx.hostinger.com) with ESMTPS id 4bdDcx4YLsz2mXh9
+	for <hi@raiansar.com>; Thu, 10 Jul 2025 12:27:29 +0000 (UTC)
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=raiansar.com;
+	s=hostingermail-a; t=1752150449;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:mime-version:mime-version:content-type:content-type:
+	 content-transfer-encoding:content-transfer-encoding:dkim-signature;
+	bh=dBULlFzOCBCyKJ/YH4Y6+794cDfN/s6I985uQxeWdAk=;
+	b=qb36YwFDw2CY3r5db5cMuVqvOlTJeTpRkWSfh+mMXlOqgFNI3j45FdFu23WNaOvu8QK2rn
+	JpexOEFEKpdTu/bYP+JOeOFxbsfg1nu5FHzzB4MbNS28OPdCBtfJAcUddorAQACmhgyDOh
+	NMcjnTDbog/XD0dSYhSubKeeZNIA2N3B2SXm3L2jF8pp5WnV4mCnL0tO5woBdT3IzSM7br
+	UWoP7u1IFLV4/DOpd2TBXakyUB2gexCD0apI49mIhdQ7+f7qXGe+ktU4vgjvACLRqAvI+p
+	hjRByRiOrum9anoiUOLSbCKTkEzfh7vgRWhDMjbTCi8yPBJwgBG7CUk+EzzfPw==
+ARC-Authentication-Results: i=1;
+	fr-int-smtpin11.hostinger.io;
+	dkim=pass header.d=wordpress.org header.s=wp1 header.b=RXBPS6Pu;
+	spf=pass (fr-int-smtpin11.hostinger.io: domain of "srs0=teua=zx=wp.com=bounce@wordpress.org" designates 198.143.164.146 as permitted sender) smtp.mailfrom="srs0=teua=zx=wp.com=bounce@wordpress.org";
+	dmarc=pass (policy=reject) header.from=wordpress.org
+ARC-Seal: i=1; s=hostingermail-a; d=raiansar.com; t=1752150449; a=rsa-sha256;
+	cv=none;
+	b=LN0BFwN0rDjX1aihrmUVd5oRd/Ez4WZx2I2Y/D/0Hl1XNZP1OScdUSxG4tzokiyS6Z5cBL
+	5MYRot6kRSHp1tvX7VbTQMwO8s8bAXbBRZTqak1vJr/YIJeL547hXXSuL/l9yAvNehQTCb
+	q4seTsYzdd3hdpqPOMpQghLzPVWtWQNywvrUqHNxU3pasQV/N9o4haSMRbNtOcjaJEREQx
+	K3rifEVaYiYhdU5r3xQtlTYavokHmHd2RO4vfJHbMEbML93Br9bCuU0zAGTNExTreNEssG
+	+a8TOK8rIdsnrJQdbyG+sTJqSr0OPRVu3FJpGW6L36ivrmY5Vdg0kWOU4z5sqg==
+Received: from smtp1.ord.wordpress.org (localhost.localdomain [127.0.0.1])
+	by smtp1.ord.wordpress.org (Postfix) with ESMTP id 37456217E5
+	for <hi@raiansar.com>; Thu, 10 Jul 2025 12:27:28 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha1; c=relaxed; d=wordpress.org; h=to
+	:subject:date:from:message-id:mime-version:content-type
+	:content-transfer-encoding; s=wp1; bh=wQui8h+720RQsXal2gUfUe26wm
+	M=; b=RXBPS6PuaVIL/PuyTkhQFnVVQxnXjF3OUJ6LYA9I9jjBxgNWkPUcCOGFF0
+	6V/dZ8LUe8EBoDSOwAgdSGxE7DUXUdCDdE56An1oXztpdiVB/6VX+0CwYX/Wo0JR
+	7hbBHE5UO3oQYcFWo/Eg3DhWeS6AnQHoXZhpeMCd7beahevFE=
+DomainKey-Signature: a=rsa-sha1; c=nofws; d=wordpress.org; h=to:subject
+	:date:from:message-id:mime-version:content-type
+	:content-transfer-encoding; q=dns; s=wp1; b=ByI7GKOplj7RokEAuwrb
+	kDaIzF+4PdiHJ0Oe+nnvoSWeRXRrg3W1EdJIcYfNNd7Q3bjDPLWDq3xaQn46MYdx
+	LalrXrUxzPWqXcyZvaRJBO1/B36Thc5BtMItqG42cT2jyJpPKkv9t7qlJQQW2HbE
+	yAx5Z1Jl41N2n/E8UC1MWt8=
+To: hi@raiansar.com
+Subject: =?us-ascii?Q?[WordPress_Plugin_Directory]_Enhanced_Autoload_?=
+ =?us-ascii?Q?Manager_has_been_approved!?=
+Date: Thu, 10 Jul 2025 12:27:28 +0000
+From: WordPress Plugin Directory <plugins@wordpress.org>
+Message-ID: <XgDUJosFSLihpD2FxYoENletZEhBrvujw8VnKwncpw@wordpress.org>
+X-Mailer: PHPMailer 6.9.3 (https://github.com/PHPMailer/PHPMailer)
+MIME-Version: 1.0
+Content-Type: multipart/alternative;
+ boundary="b1=_XgDUJosFSLihpD2FxYoENletZEhBrvujw8VnKwncpw"
+Content-Transfer-Encoding: 8bit
+X-CM-Envelope: MS4xfIR4Pc6J4Sphqvs//ctcwvPuq+9OLjMRjgSdkILSUEJEja2TXBeBTeObSSWAZGxOYoyv5EfZZQPEJRfEorsIzJxMYziZKXO1vRWZjYWHrqeenz0cbQ9o jNWxpoBmsIwegTTXKOJ1nLywx/spQ0RHWZz8V6kyqYp09wRs8eC+y0BxaRHjF3ln89UxvIGDEfniL6+upO8/Ly6XjJrhcSu84V5ZgH7HNq0ugbvT9KQ1bXyF
+X-CM-Analysis: v=2.4 cv=Vv1xAP2n c=1 sm=1 tr=0 ts=686fb1b1 a=X4BPiDNuEARMs96rxZPbjg==:117 a=X4BPiDNuEARMs96rxZPbjg==:17 a=Wb1JkmetP80A:10 a=puQWGBksFvoA:10 a=zuxGUQ1XYJ4A:10 a=06aqjJ_2AAAA:8 a=O7nzEEsHB-BiduxrV8AA:9 a=CjuIK1q_8ugA:10 a=g3QhX4s44zZXgb-j:21
+
+--b1=_XgDUJosFSLihpD2FxYoENletZEhBrvujw8VnKwncpw
+Content-Type: text/plain; charset=us-ascii
+
+Congratulations, the plugin hosting request for Enhanced Autoload Manager has been approved.
+
+Within one (1) hour your account (raiansar) will be granted commit access to your Subversion (SVN) repository.
+
+* SVN URL: https://plugins.svn.wordpress.org/enhanced-autoload-manager
+* Public URL: https://wordpress.org/plugins/enhanced-autoload-manager
+
+Once your account access has been activated, you may upload your code using a SVN client of your choice. If you are new to SVN (or the Plugin Directory) make sure to review all the links in this email.
+
+To answer some common questions:
+
+* You must use SVN to upload your code -- we are unable to do that for you
+* Your SVN username is `raiansar` and is case sensitive.
+* You can <strong>set up your SVN credentials</strong> (if you haven't already) in the "Account & Security" section of your [WordPress.org profile](https://profiles.wordpress.org/raiansar/profile/edit/group/3/?screen=svn-password).
+* SVN will not accept your email address as a username
+* Due to the size of the directory, it may take 72 hours before all search results are properly updated
+
+To help you get started, here are some links:
+
+Using Subversion with the WordPress Plugin Directory:<br>
+https://developer.wordpress.org/plugins/wordpress-org/how-to-use-subversion/
+
+Generating your SVN Password:<br>
+https://make.wordpress.org/meta/handbook/tutorials-guides/svn-access/
+
+FAQ about the WordPress Plugin Directory:<br>
+https://developer.wordpress.org/plugins/wordpress-org/plugin-developer-faq/
+
+WordPress Plugin Directory readme.txt standard:<br>
+https://wordpress.org/plugins/developers/#readme
+
+A readme.txt validator:<br>
+https://wordpress.org/plugins/developers/readme-validator/
+
+Plugin Assets (header images, etc):<br>
+https://developer.wordpress.org/plugins/wordpress-org/plugin-assets/
+
+WordPress Plugin Directory Guidelines:<br>
+https://developer.wordpress.org/plugins/wordpress-org/detailed-plugin-guidelines/
+
+Block Specific Plugin Guidelines:<br>
+https://developer.wordpress.org/plugins/wordpress-org/block-specific-plugin-guidelines/
+
+If you have issues or questions, please reply to this email and let us know.
+
+Enjoy!
+
+--
+The WordPress Plugin Directory Team
+https://make.wordpress.org/plugins
+
+--b1=_XgDUJosFSLihpD2FxYoENletZEhBrvujw8VnKwncpw
+Content-Type: text/html; charset=us-ascii
+
+<p>Congratulations, the plugin hosting request for Enhanced Autoload Manager has been approved.</p>
+
+<p>Within one (1) hour your account (raiansar) will be granted commit access to your Subversion (SVN) repository.</p>
+
+<ul>
+<li>SVN URL: <a href="https://plugins.svn.wordpress.org/enhanced-autoload-manager" rel="nofollow">https://plugins.svn.wordpress.org/enhanced-autoload-manager</a></li>
+<li>Public URL: <a href="https://wordpress.org/plugins/enhanced-autoload-manager">https://wordpress.org/plugins/enhanced-autoload-manager</a></li>
+</ul>
+
+<p>Once your account access has been activated, you may upload your code using a SVN client of your choice. If you are new to SVN (or the Plugin Directory) make sure to review all the links in this email.</p>
+
+<p>To answer some common questions:</p>
+
+<ul>
+<li>You must use SVN to upload your code -- we are unable to do that for you</li>
+<li>Your SVN username is <code>raiansar</code> and is case sensitive.</li>
+<li>You can <strong>set up your SVN credentials</strong> (if you haven't already) in the "Account &amp; Security" section of your <a href="https://profiles.wordpress.org/raiansar/profile/edit/group/3/?screen=svn-password">WordPress.org profile</a>.</li>
+<li>SVN will not accept your email address as a username</li>
+<li>Due to the size of the directory, it may take 72 hours before all search results are properly updated</li>
+</ul>
+
+<p>To help you get started, here are some links:</p>
+
+<p>Using Subversion with the WordPress Plugin Directory:<br>
+<a href="https://developer.wordpress.org/plugins/wordpress-org/how-to-use-subversion/" rel="nofollow">https://developer.wordpress.org/plugins/wordpress-org/how-to-use-subversion/</a></p>
+
+<p>Generating your SVN Password:<br>
+<a href="https://make.wordpress.org/meta/handbook/tutorials-guides/svn-access/" rel="nofollow">https://make.wordpress.org/meta/handbook/tutorials-guides/svn-access/</a></p>
+
+<p>FAQ about the WordPress Plugin Directory:<br>
+<a href="https://developer.wordpress.org/plugins/wordpress-org/plugin-developer-faq/" rel="nofollow">https://developer.wordpress.org/plugins/wordpress-org/plugin-developer-faq/</a></p>
+
+<p>WordPress Plugin Directory readme.txt standard:<br>
+<a href="https://wordpress.org/plugins/developers/#readme">https://wordpress.org/plugins/developers/#readme</a></p>
+
+<p>A readme.txt validator:<br>
+<a href="https://wordpress.org/plugins/developers/readme-validator/">https://wordpress.org/plugins/developers/readme-validator/</a></p>
+
+<p>Plugin Assets (header images, etc):<br>
+<a href="https://developer.wordpress.org/plugins/wordpress-org/plugin-assets/" rel="nofollow">https://developer.wordpress.org/plugins/wordpress-org/plugin-assets/</a></p>
+
+<p>WordPress Plugin Directory Guidelines:<br>
+<a href="https://developer.wordpress.org/plugins/wordpress-org/detailed-plugin-guidelines/" rel="nofollow">https://developer.wordpress.org/plugins/wordpress-org/detailed-plugin-guidelines/</a></p>
+
+<p>Block Specific Plugin Guidelines:<br>
+<a href="https://developer.wordpress.org/plugins/wordpress-org/block-specific-plugin-guidelines/" rel="nofollow">https://developer.wordpress.org/plugins/wordpress-org/block-specific-plugin-guidelines/</a></p>
+
+<p>If you have issues or questions, please reply to this email and let us know.</p>
+
+<p>Enjoy!</p><p><hr>The WordPress Plugin Directory Team<br />
+<a href="https://make.wordpress.org/plugins" rel="nofollow">https://make.wordpress.org/plugins</a></p>
+
+
+--b1=_XgDUJosFSLihpD2FxYoENletZEhBrvujw8VnKwncpw--
+

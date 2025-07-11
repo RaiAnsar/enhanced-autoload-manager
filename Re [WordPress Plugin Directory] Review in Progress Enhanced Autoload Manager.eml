@@ -1,0 +1,885 @@
+Return-Path: <l195xvpwn8.2qey8qrk5l+v1@bounce.helpscout.net>
+Delivered-To: hi@raiansar.com
+Received: from mail5.helpscout.net (mail5.helpscout.net [54.174.116.32])
+	by fr-int-smtpin1.hostinger.io (mx.hostinger.com) with ESMTPS id 4bdDdP0B0YzHnRjc
+	for <hi@raiansar.com>; Thu, 10 Jul 2025 12:27:52 +0000 (UTC)
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=raiansar.com;
+	s=hostingermail-a; t=1752150473;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:mime-version:mime-version:content-type:content-type:
+	 in-reply-to:in-reply-to:references:references:dkim-signature;
+	bh=FYsnl0NixvVgSYg/BzxTSxvc8NX/NUcWBAn+dHvRGT0=;
+	b=Rh1oqXo+NVH02KqiF3drtDGMhV40xZ1CnyrCOqqDxK9cznYCIegO1iElHCMq/yoB3SazUX
+	vqaO5gU7YQj30WC93fEd4aILjwK1a1oXhmPYV7+ImnWSh9KKwyuM9LkHTnp2CPgjth6hrl
+	gYTVLEAEoVjLT+d6PoCx13xiY0yPrwVsccVXCofWK5YpMQs+redQe7Q6FbeLbetJZNDKYJ
+	lXFxif1pvpGm5l6j2RU5hUE2sWMsD314cMDWgPyu3Jzzhf+Sy/45ClYqY5z3ba9V9lfIRC
+	QcM1x7904duYIiFyNerZZAMDYYl4o/noHBiSIWFyeBYAy4HF7Fe84fJnZLeh3g==
+ARC-Seal: i=1; s=hostingermail-a; d=raiansar.com; t=1752150473; a=rsa-sha256;
+	cv=none;
+	b=E3wjE30Bi/FV/N8AbhJVlg6yxXryn+jYEc8jZExyC9898Jc8wZq5j2JXwFyXHCELnxBz8X
+	YrSUA2kVXzok6g6yj9ARtbdtU1evN2waETIvQC/hpjWOrtMoIPszG8DtLbj+N7RKSf4lB5
+	4JSUDKxJoHR0w41RHKg508YvjtQ7z5QjfZnRG8x2pHOjSiQ+4Z8y9CWuYUQSFNBrHGruuA
+	sMmuYs5e0M5QCtZ3A+Rv9PDGgkO7XQlHm3QT4lgxEPh9XRTqpwZO9TFo5arw7F9P7Q3xv4
+	UW1Tj7XcIXwax/8IyfmMVuWE0aqJLdmkgLjdVg9NfxuKL/acK9Uvi4nr4czHxA==
+ARC-Authentication-Results: i=1;
+	fr-int-smtpin1.hostinger.io;
+	dkim=pass header.d=wordpress.org header.s=strong1 header.b="oq/TxdDy";
+	dkim=pass header.d=helpscout.net header.s=strong1 header.b=Z8BOoBhK;
+	dmarc=pass (policy=reject) header.from=wordpress.org;
+	spf=pass (fr-int-smtpin1.hostinger.io: domain of l195xvpwn8.2qey8qrk5l+v1@bounce.helpscout.net designates 54.174.116.32 as permitted sender) smtp.mailfrom=l195xvpwn8.2qey8qrk5l+v1@bounce.helpscout.net
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; s=strong1; d=wordpress.org;
+ h=From:To:Subject:X-Msg-Context:CFBL-Address:CFBL-Feedback-ID:In-Reply-To:
+ References:Message-Id:Date:Content-Type:MIME-Version:from:to:subject:reply-to:
+ cc; i=plugins@wordpress.org;
+ bh=FYsnl0NixvVgSYg/BzxTSxvc8NX/NUcWBAn+dHvRGT0=;
+ b=oq/TxdDyfb/1PC4YHx01rb88FhHQ7xIEkwy0uvBhCDe+ciDGQKvDBZgGGvYIm4rCFq8qiUNsxBBn
+   lfQDPNMrp8Pi6GZO/XhoIbpV3/gjROzhjx0LbGVEATC7IQqEjWlsuNt3AyUp9VqiOUJjZCvS9Oa/
+   YMgiuaOqcejyIibIsAg=
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; s=strong1; d=helpscout.net;
+ h=From:To:Subject:X-Msg-Context:CFBL-Address:CFBL-Feedback-ID:In-Reply-To:
+ References:Message-Id:Date:Content-Type:MIME-Version:from:to:subject:reply-to:
+ cc;
+ bh=FYsnl0NixvVgSYg/BzxTSxvc8NX/NUcWBAn+dHvRGT0=;
+ b=Z8BOoBhKoFDIxKuyMT8AOLunr/HZHltKCI/szmdoEmknHXEl/pcnaLvDMZJvOdnkSNLoSKYQT8Cc
+   NN8bkfNdGt3dnkBA52yfT8wnWv3qJwY2aLXRVRo68eoJzROnN+1NDQC4t0nL+XCQc/wnWhVVGYxy
+   IYdPBloh8oYd3qwXMhc=
+Received: by mail5.helpscout.net id hduose35n8k5 for <hi@raiansar.com>; Thu, 10 Jul 2025 12:27:51 +0000 (envelope-from <l195xvpwn8.2qey8qrk5l+v1@bounce.helpscout.net>)
+From: WordPress.org Plugin Directory <plugins@wordpress.org>
+To: Rai Ansar <hi@raiansar.com>
+Subject: Re: [WordPress Plugin Directory] Review in Progress: Enhanced Autoload Manager
+X-Hs-Format: 2
+X-Msg-Context: HS-1-168033-2987981832-9120028977
+CFBL-Address: fbl@helpscout.net; report=arf
+CFBL-Feedback-ID: HS-1-168033-2987981832-9120028977
+X-Hs-Cid: 83653
+X-Hs-Uid: xbjLW0yPyYlqqPO23GeE
+X-Report-Abuse: Please forward a copy of this message, including all headers, to abuse@helpscout.net
+X-Hs-State: 3
+In-Reply-To: <ec5ec10b78274f595a6cf137f78591e3@raiansar.com>
+References: <ec5ec10b78274f595a6cf137f78591e3@raiansar.com> <reply-83653-2987981832-9109520974-1751949082-882445632@helpscout.net>
+Message-Id: <reply-83653-2987981832-9120028977-1752150471-1262160745@helpscout.net>
+X-Msg-Timestamp: 2025-07-10T12:27:51+00:00
+Date: Thu, 10 Jul 2025 12:27:51 +0000
+Content-Type: multipart/alternative;
+ boundary="=_7d990faa353ea14f59dff27231448e51"
+MIME-Version: 1.0
+X-CM-Envelope: MS4xfB25b0D9MItzack22FsamjM6RJ4vRCpUXCB1q9MjxPhlfa+O4Df9qjvF968rjUGNlzif/rmZRPqGaX1tbvgyI5eWEfRmqybW9v+6UUaOk3rcYeTOB5hX MChuq4w+zlxvaL41vpRCCADFqU4jvDVCD2PlJ2JziubcwaWM99ddh9J+c2xLEnuAs9vcH1iyOnsvTDEtn/79k/xHPnd+x5azf08McbgO4+95cUb82h164VRu
+X-CM-Analysis: v=2.4 cv=Vv1xAP2n c=0 sm=1 tr=0 ts=686fb1c9 awl=host:2113
+
+--=_7d990faa353ea14f59dff27231448e51
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
+
+-- Please reply above this line --=0A=0A=0A            Your review has b=
+een successfully completed. Details on how to access=0Ayour SVN reposito=
+ry will be emailed within 24 hours to the address=0Afrom which you submi=
+tted your plugin.=0A=0AWHAT TO DO NEXT=0A=0AYOU DO NOT NEED TO REPLY TO=
+ _THIS_ EMAIL, however please read the rest=0Aof it :)=0A=0AFrom this po=
+int, we will not re-review your code unless we're alerted=0Ato a guideli=
+ne or security issue. We trust you to have the necessary=0Askills to man=
+age and maintain your own plugin.=0A=0A=09* Add plugins@wordpress.org [1=
+] to your address book so you don't=0Amiss any emails. It is important t=
+hat we can reach you by email to=0Anotify you of any issues, changes, or=
+ news related to your plugin or=0Athe directory. =0A=09* Follow https://=
+make.wordpress.org/plugins [2] for important=0Anotifications and updates=
+=0A=09* Upload your code to the directory via SVN=0A=0ARemember to revie=
+w the plugin guidelines. All plugins and developers,=0Aas well as suppor=
+t staff, are required to follow the guidelines.=0A=0A=09*=0Ahttps://deve=
+loper.wordpress.org/plugins/wordpress-org/detailed-plugin-guidelines/=0A=
+[3]=0A=0APlease keep in mind that a successful review DOES NOT guarantee=
+ that=0Ayour plugin is free from any and all security issues or guidelin=
+e=0Aviolations. We, like you, are humans. Humans make mistakes.=0A=0AWe=
+ recommend that you continue checking your code with tools such as=0APHP=
+CS+WPCS [4] and Plugin Check [5]. It's in everyone's best interest=0Ato=
+ ensure that your plugin stays secure, compatible, and compliant.=0A=0AS=
+hould an issue arise later, your plugin will be closed and you will=0Abe=
+ notified to fix it as soon as possible. This is standard operating=0Apr=
+ocedure for all plugins (even the big ones), and we appreciate your=0Aun=
+derstanding of this policy.=0A=0ASVN TIPS AND TRICKS=0A=0AIf you're new=
+ to SVN, it can be a little weird to get used to. Unlike=0Acommon uses o=
+f repositories like Git, we use SVN as a _release_=0Asystem. This means=
+ that you should only be pushing ready-to-be-used=0Aversions of your plu=
+gin.=0A=0AThe automated approval email that follows this will contain=0A=
+information as to how to use SVN. We ask you please read ALL the links=
+=0Ain that email before asking us for help. We will not be able to give=
+=0Ayou explicit usage directions, as there are a lot of SVN clients out=
+=0Athere and we are not experts in them all. We also cannot upload your=
+=0Acode for you, so you will be expected to master this system.=0A=0ATo=
+ get started, you should read this: =0A=0Ahttps://developer.wordpress.or=
+g/plugins/wordpress-org/how-to-use-subversion/=0A[6]=0A=0ASome common po=
+ints of confusion are:=0A=0A=09* SVN user IDs are the same as your WordP=
+ress.org login ID - not your=0Aemail address=0A=09* User IDs are case se=
+nsitive (if your account is JoDoe123HAY then=0Ayou must use that exact I=
+D)=0A=09* You can SET UP YOUR SVN CREDENTIALS (if you haven't already) i=
+n the=0A=E2=80=9CAccount & Security=E2=80=9D section of your WordPress p=
+rofile -=0Ahttps://profiles.wordpress.org/me/profile/edit/group/3/?scree=
+n=3Dsvn-password=0A[7]=0A=09* Your readme content determines what inform=
+ation is shown on your=0AWordPress.org public page -=0Ahttps://developer=
+.wordpress.org/plugins/wordpress-org/how-your-readme-txt-works/=0A[8]=0A=
+=09* Your plugin banners, screenshots, and icons are handled via the=0As=
+pecial plugin assets folder -=0Ahttps://developer.wordpress.org/plugins/=
+wordpress-org/plugin-assets/=0A[9]=0A=0A(In order to speed up the proces=
+s for everyone, please do not reply to=0Athis email unless you have a qu=
+estion. Thank you and good luck!)=0A=0ALinks:=0A------=0A[1] mailto:plug=
+ins@wordpress.org=0A[2] https://make.wordpress.org/plugins=0A[3]=0Ahttps=
+://developer.wordpress.org/plugins/wordpress-org/detailed-plugin-guideli=
+nes/=0A[4] https://github.com/WordPress/WordPress-Coding-Standards=0A[5]=
+ https://wordpress.org/plugins/plugin-check/=0A[6]=0Ahttps://developer.w=
+ordpress.org/plugins/wordpress-org/how-to-use-subversion/=0A[7]=0Ahttps:=
+//profiles.wordpress.org/me/profile/edit/group/3/?screen=3Dsvn-password=
+=0A[8]=0Ahttps://developer.wordpress.org/plugins/wordpress-org/how-your-=
+readme-txt-works/=0A[9]=0Ahttps://developer.wordpress.org/plugins/wordpr=
+ess-org/plugin-assets/=0A=0A--=0AWordPress Plugin Review Team |=C2=A0plu=
+gins@wordpress.org=0Ahttps://make.wordpress.org/plugins/ =0Ahttps://deve=
+loper.wordpress.org/plugins/wordpress-org/detailed-plugin-guidelines/=0A=
+https://wordpress.org/plugins/plugin-check/=0A                         =
+       =0A                    =0A                    =0A               =
+     =0A                    =0A        > On Tue, Jul 8, 2025 at 4:41 AM=
+ UTC, Rai Ansar &lt;hi@raiansar.com&gt; wrote:=0A> =0A> =0A> =0A> Dear W=
+ORDPRESS PLUGIN REVIEW TEAM,=0A> Thank you for your thorough review of t=
+he Enhanced Autoload Manager=0A> plugin. I appreciate the time and effor=
+t you've invested in helping=0A> improve the security and quality of thi=
+s plugin.=0A> I have carefully addressed all the issues identified in yo=
+ur review=0A> and uploaded version 1.5.4 of the plugin. Here's a summary=
+ of the=0A> corrections made:=0A> 1. WORDPRESS.ORG DIRECTORY ASSETS: The=
+ assets folder containing=0A> screenshots has been completely removed fr=
+om the plugin zip file. I=0A> understand these should be uploaded separa=
+tely via SVN after approval.=0A> 2. NONCE SECURITY: The flawed nonce val=
+idation logic has been=0A> corrected. The plugin now properly checks for=
+ the presence of GET=0A> parameters and requires valid nonce verificatio=
+n when any parameters=0A> are present, failing early with wp_die() if th=
+e nonce is missing or=0A> invalid.=0A> 3. ESCAPING OUTPUT: All translata=
+ble strings are now properly escaped=0A> using esc_html__() instead of j=
+ust __(), including the instance on=0A> line 509 (now line 517) that was=
+ specifically mentioned.=0A> 4. OPTION NAME PREFIXING: All instances of=
+ 'total_autoload_size' have=0A> been updated to 'edal_total_autoload_siz=
+e' throughout the plugin to=0A> prevent conflicts with other plugins.=0A=
+> The updated plugin has been thoroughly tested with:=0A> - WP_DEBUG ena=
+bled on a clean WordPress installation=0A> - Plugin Check tool (now pass=
+es with no errors)=0A> - WordPress 6.8 compatibility verified=0A> - PHP=
+ 7.4+ compatibility confirmed=0A> All security best practices have been=
+ implemented, including proper=0A> sanitization, escaping, nonce verific=
+ation, and capability checks=0A> throughout the codebase.=0A> Thank you=
+ again for your valuable feedback. I look forward to your=0A> re-review=
+ of VERSION 1.5.4.  Best regards,=0A> Rai Ansar=0A> https://raiansar.com=
+ [1]=0A> ---=0A> =0A> Links:=0A> ------=0A> [1] https://raiansar.com=0A>=
+ =0A> =0A> =0A>> On Tue, Jul 8, 2025 at 4:30 AM UTC, WordPress.org Plugi=
+n Directory &lt;plugins@wordpress.org&gt; wrote:=0A>>=0A>> This is an au=
+tomated message to confirm that we have received your=0A>> updated plugi=
+n file.=0A>>=0A>> File updated by raiansar, version 1.5.4.=0A>> Comment:=
+ Took care of the vulnerabilities and improper use of classes.=0A>>=0A>>=
+ https://wordpress.org/plugins/files/2025/06/08_04-30-57_enhanced-autolo=
+ad-manager.zip=0A>> [1]=0A>>=0A>> Links:=0A>> ------=0A>> [1]=0A>> https=
+://wordpress.org/plugins/files/2025/06/08_04-30-57_enhanced-autoload-man=
+ager.zip=0A>>=0A>> --=0A>> WordPress Plugin Review Team |=C2=A0plugins@w=
+ordpress.org=0A>> https://make.wordpress.org/plugins/=0A>> https://devel=
+oper.wordpress.org/plugins/wordpress-org/detailed-plugin-guidelines/=0A>=
+> https://wordpress.org/plugins/plugin-check/=0A>>=0A>>=0A>>> On Fri, Ju=
+l 4, 2025 at 3:31 PM UTC, WordPress.org Plugin Directory &lt;plugins@wor=
+dpress.org&gt; wrote:=0A>>>=0A>>> It's time to move forward with the plu=
+gin review "raiansar"!Your=0A>>> plugin is not yet ready to be approved,=
+ you are  receiving this email=0A>>> because the volunteers have manuall=
+y checked it and  have found some=0A>>> issues in the code / functionali=
+ty of your plugin. Please check this=0A>>> email thoroughly, address any=
+ issues listed, test your changes, and=0A>>> upload a corrected version=
+ of your code if all is well. The manual=0A>>> review processYour plugin=
+ is checked by a volunteer who will send you=0A>>> the issues found in t=
+his email.You will read this email in its=0A>>> entirety,  checking each=
+ issue as well as the links to the=0A>>> documentation and  examples pro=
+vided. In case of any doubt, you will=0A>>> reply to this email  asking=
+ for clarification.Then you will thoroughly=0A>>> fix any issues, test y=
+our plugin, upload a corrected version of your=0A>>> plugin and reply to=
+ this email.As soon as the volunteer is able,=0A>>> they/she/he will che=
+ck your corrected plugin again. Please, be patient=0A>>> waiting for a r=
+eply. If there are no further issues, the plugin will=0A>>> be approved=
+ =F0=9F=8E=89If there are still issues, the process will go back to=0A>>=
+> step 1 until all the issues have been addressed =F0=9F=AB=B7This is th=
+e=0A>>> current step.=E2=9A=A0=EF=B8=8F When you reply we will be review=
+ing your entire=0A>>> plugin again, so please do not reply until you are=
+ sure you have=0A>>> addressed all of the issues listed, otherwise your=
+ submission will be=0A>>> delayed and eventually rejected. List of issue=
+s found## WordPress.org=0A>>> directory assets in the plugin code.We've=
+ detected WordPress.org=0A>>> directory plugin asset files in your  subm=
+ission. Thanks for including=0A>>> them; However, these files (banners,=
+  icons, screenshots created for=0A>>> the directory plugin page) are no=
+t part  of the plugin code and should=0A>>> not be included in your plug=
+in zip file. Plugin assets should be=0A>>> uploaded to the WordPress.org=
+ repository  separately after the plugin=0A>>> is approved. This is done=
+ through the SVN  access. For more=0A>>> information about plugin assets=
+ and how to upload them, please refer=0A>>> to: How Your Plugin Assets W=
+ork. From your plugin:=0A>>> enhanced-autoload-manager/assets/screenshot=
+-2.png=0A>>> enhanced-autoload-manager/assets/screenshot-1.png=0A>>> ##=
+ Nonces and User Permissions Needed for SecurityPlease add a nonce=0A>>>=
+ check to your input calls ($_POST, $_GET, $REQUEST) to prevent=0A>>> un=
+authorized access. If you use wp_ajax_  to trigger submission=0A>>> chec=
+ks, remember they also need a nonce check. =F0=9F=91=AE Checking=0A>>> p=
+ermissions: Keep in mind, a nonce check alone is not  bulletproof=0A>>>=
+ security. Do not rely on nonces for authorization purposes.  When=0A>>>=
+ needed, use it together with current_user_can()  in order to prevent=0A=
+>>> users without the right permissions from accessing things they=0A>>>=
+ shouldn't. Also make sure that the nonce logic is correct by making=0A>=
+>> sure it cannot be bypassed. Checking the nonce with current_user_can(=
+)=0A>>> is great, but mixing it with other checks can make the condition=
+=0A>>> more  complex and, without realising it, bypassable, remember tha=
+t=0A>>> anything can be sent through an input, don't trust any input. Ke=
+ep=0A>>> performance in mind. Don't check for post submission outside of=
+=0A>>> functions. Doing so means that the check will run on every single=
+ load=0A>>> of the plugin, which means that every single person who view=
+s any=0A>>> page  on a site using your plugin will be checking for a sub=
+mission.=0A>>> This will  make your code slow and unwieldy for users on=
+ any high=0A>>> traffic site,  leading to instability and eventually cra=
+shes. The=0A>>> following links may assist you in development:=0A>>> htt=
+ps://developer.wordpress.org/plugins/security/nonces/https://developer.w=
+ordpress.org/plugins/javascript/ajax/#noncehttps://developer.wordpress.o=
+rg/plugins/settings/settings-api/From=0A>>> your plugin: enhanced-autolo=
+ad-manager.php:170 No nonce check was=0A>>> found validating the origin=
+ of inputs in the lines 170-195 - in the=0A>>> context of the classMetho=
+d Enhanced_Autoload_Manager::display_page()=0A>>> # =E2=86=B3 Line 186:=
+ $mode =3D isset($_GET['mode']) ?=0A>>> sanitize_text_field(wp_unslash($=
+_GET['mode'])) : 'basic';=0A>>> # =E2=86=B3 Line 187: $count =3D isset($=
+_GET['count']) ?=0A>>> intval(wp_unslash($_GET['count'])) : 10;=0A>>> #=
+ =E2=86=B3 Line 188: $search =3D isset($_GET['search']) ?=0A>>> sanitize=
+_text_field(wp_unslash($_GET['search'])) : '';=0A>>> Please,  make sure=
+ that the nonce logic is correct. It's important to=0A>>> be  cautious w=
+hen structuring conditional checks around=0A>>> nonces.enhanced-autoload=
+-manager.php:182 if (isset($_GET['_wpnonce'])=0A>>> &&=0A>>> !wp_verify_=
+nonce(sanitize_text_field(wp_unslash($_GET['_wpnonce'])),=0A>>> $nonce_a=
+ction)) {=0A>>> Security note: In the current implementation, the nonce=
+  is only=0A>>> verified if all other conditions are met first. This mea=
+ns that  if=0A>>> those other conditions aren=E2=80=99t satisfied, the n=
+once check is=0A>>> completely skipped =E2=80=94 effectively making the=
+ nonce optional and=0A>>> opening  up a potential security bypass. This=
+ is particularly risky=0A>>> when you use an isset()  or !empty()  check=
+ combined with=0A>>> !wp_verify_nonce()  in an AND condition.  In practi=
+ce, if the nonce is=0A>>> simply omitted from the request, the  conditio=
+n won=E2=80=99t be evaluated=0A>>> at all, defeating the purpose of usin=
+g  nonces to prevent CSRF. To=0A>>> enforce nonce validation properly, y=
+ou should fail early if the nonce=0A>>> is missing. For example: if ( !=
+ isset( $_POST['enhaauma_nonce'] ) || !=0A>>> wp_verify_nonce( $_POST['e=
+nhaauma_nonce'], 'enhaauma_nonce' ) ) {=0A>>> wp_die();=0A>>> }=0A>>> //=
+ Nonce is present and valid =E2=80=94 continue execution=0A>>> You can a=
+lso check this with an AND condition, in that case the code=0A>>> would=
+ look like this: if ( isset( $_POST['enhaauma_nonce'] ) &&=0A>>> wp_veri=
+fy_nonce( $_POST['enhaauma_nonce'], 'enhaauma_nonce' ) ) {=0A>>> // Nonc=
+e is present and valid inside this condition.=0A>>> }=0A>>> Example(s) f=
+rom your plugin: enhanced-autoload-manager.php:182 if=0A>>> (isset($_GET=
+['_wpnonce']) &&=0A>>> !wp_verify_nonce(sanitize_text_field(wp_unslash($=
+_GET['_wpnonce'])),=0A>>> $nonce_action)) {=0A>>> ## Variables and optio=
+ns must be escaped when echo'dMuch related to=0A>>> sanitizing everythin=
+g, all variables that are echoed  need to be=0A>>> escaped when they're=
+ echoed, so it can't hijack users or  (worse)=0A>>> admin screens. There=
+ are many esc_*() functions you can use to  make=0A>>> sure you don't sh=
+ow people the wrong data, as well as some that  will=0A>>> allow you to=
+ echo HTML safely. At this time, we ask you escape all=0A>>> $-variables=
+, options, and any sort of generated data when it is being=0A>>> echoed.=
+  That means you should not be escaping when you build a=0A>>> variable,=
+ but  when you output it at the end. We call this 'escaping=0A>>> late.'=
+ Besides protecting yourself from a possible XSS vulnerability,=0A>>> es=
+caping  late makes sure that you're keeping the future you safe.=0A>>> W=
+hile today  your code may be only outputted hardcoded content, that=0A>>=
+> may not be true  in the future. By taking the time to properly escape=
+=0A>>> when you echo, you prevent a mistake in the future from becoming=
+ a=0A>>> critical security issue. This remains true of options you've sa=
+ved to=0A>>> the database. Even if  you've properly sanitized when you s=
+aved, the=0A>>> tools for sanitizing and  escaping aren't interchangeabl=
+e. Sanitizing=0A>>> makes sure it's safe for  processing and storing in=
+ the database.=0A>>> Escaping makes it safe to  output. Also keep in min=
+d that sometimes a=0A>>> function is echoing when it should  really be r=
+eturning content=0A>>> instead. This is a common mistake when it  comes=
+ to returning JSON=0A>>> encoded content. Very rarely is that actually =
+ something you should be=0A>>> echoing at all. Echoing is because it nee=
+ds to  be on the screen, read=0A>>> by a human. Returning (which is what=
+ you would do  with an API) can be=0A>>> json encoded, though remember t=
+o sanitize when you save to that json=0A>>> object! There are a number o=
+f options to secure all types of content=0A>>> (html, email, etc). Yes,=
+ even HTML needs to be properly escaped.=0A>>> https://developer.wordpre=
+ss.org/apis/security/escaping/Remember: You=0A>>> must use the most appr=
+opriate functions for the context.  There is=0A>>> pretty much an option=
+ for everything you could echo. Even  echoing=0A>>> HTML safely. Example=
+(s) from your plugin:=0A>>> enhanced-autoload-manager.php:509 __('Need c=
+ustom WordPress plugins,=0A>>> WooCommerce sites, or server optimization=
+? Contact %1$s at %2$s',=0A>>> 'enhanced-autoload-manager'),=0A>>> Note:=
+ The function __  retrieves the translation without escaping,=0A>>> plea=
+se either: Use an alternative function that escapes the resulting=0A>>>=
+ value such as esc_html__  or esc_attr__ .Or wrap the __  function with=
+=0A>>> a proper escaping function such as esc_html , esc_attr , wp_kses_=
+post=0A>>> , etc.Examples:<h2><?php echo esc_html__('Settings page',=0A>=
+>> 'enhanced-autoload-manager'); ?></h2>=0A>>>=0A>>> <h2><?php echo esc_=
+html(__('Settings page',=0A>>> 'enhanced-autoload-manager')); ?></h2>=0A=
+>>> Example(s) from your plugin: enhanced-autoload-manager.php:509=0A>>>=
+ __('Need custom WordPress plugins, WooCommerce sites, or server=0A>>> o=
+ptimization? Contact %1$s at %2$s', 'enhanced-autoload-manager'),=0A>>>=
+ =E2=9C=94=EF=B8=8F You can check this using Plugin Check.## Generic=0A>=
+>> function/class/define/namespace/option namesAll plugins must have=0A>=
+>> unique function names, namespaces, defines, class  and option names.=
+=0A>>> This prevents your plugin from conflicting with other  plugins or=
+=0A>>> themes. We need you to update your plugin to use more unique  and=
+=0A>>> distinct names. A good way to do this is with a prefix. For examp=
+le,=0A>>> if your plugin is  called "Enhanced Autoload Manager" then you=
+ could=0A>>> use names like these: function enhaauma_save_post(){ ... }c=
+lass=0A>>> ENHAAUMA_Admin { ... }update_option( 'enhaauma_options', $opt=
+ions=0A>>> );register_setting( 'enhaauma_settings', 'enhaauma_user_id',=
+ ...=0A>>> );define( 'ENHAAUMA_PLUGIN_DIR', plugin_dir_path( __FILE__ )=
+ );global=0A>>> $enhaauma_options;add_action('wp_ajax_enhaauma_save_data=
+', ...=0A>>> );namespace raiansarenhancedautoloadmanager;Disclaimer: The=
+se are just=0A>>> examples that may have been self-generated  from your=
+ plugin name, we=0A>>> trust you can find better options. If you  have a=
+ good alternative,=0A>>> please use it instead, this is just an example.=
+Don't try to use two=0A>>> (2) or three (3) letter prefixes anymore. We=
+ host  nearly 100-thousand=0A>>> plugins on WordPress.org alone. There a=
+re tens of  thousands more=0A>>> outside our servers. Believe us, you=E2=
+=80=99re going to run into=0A>>> conflicts. You also need to avoid the u=
+se of __ (double underscores),=0A>>> wp_ , or _  (single underscore) as=
+ a prefix. Those are reserved for=0A>>> WordPress  itself. You can use t=
+hem inside your classes, but not as=0A>>> stand-alone  function. Please=
+ remember, if you're using _n() or __()=0A>>> for translation, that's fi=
+ne. We're only  talking about functions=0A>>> you've created for your pl=
+ugin, not the core  functions from=0A>>> WordPress. In fact, those core=
+ features are why you need  to not use=0A>>> those prefixes in your own=
+ plugin! You don't want to break  WordPress=0A>>> for your users. Relate=
+d to this, using if (!function_exists('NAME')) {=0A>>> around all your =
+ functions and classes sounds like a great idea until=0A>>> you realize=
+ the  fatal flaw. If something else has a function with the=0A>>> same n=
+ame and  their code loads first, your plugin will break. Using=0A>>> if-=
+exists should  be reserved for shared libraries only. Remember:=0A>>> Go=
+od prefix names are unique and distinct to your plugin. This  will=0A>>>=
+ help you and the next person in debugging, as well as prevent=0A>>> con=
+flicts. Analysis result: # This plugin is using the prefix "edal"=0A>>>=
+ for 12 element(s).=0A>>>=0A>>> # Looks like there are elements not usin=
+g common prefixes.=0A>>> enhanced-autoload-manager.php:165 update_option=
+('total_autoload_size',=0A>>> $total_size, 'no');=0A>>> enhanced-autoloa=
+d-manager.php:675 update_option('total_autoload_size',=0A>>> $total_auto=
+load_size);=0A>>> enhanced-autoload-manager.php:720 update_option('total=
+_autoload_size',=0A>>> floatval($settings['total_autoload_size']));=0A>>=
+> Note: Options and Transients must be prefixed. This is really=0A>>> im=
+portant because the options are stored in a shared  location and=0A>>> u=
+nder the name you have set. If two plugins use the same  name for=0A>>>=
+ options, they will find an interesting conflict when trying to  read=0A=
+>>> information introduced by the other plugin. Also, once your plugin h=
+as=0A>>> active users, changing the name of an option  is going to be re=
+ally=0A>>> tricky, so let's make it robust from the very  beginning. Exa=
+mple(s)=0A>>> from your plugin: enhanced-autoload-manager.php:675=0A>>>=
+ update_option('total_autoload_size', $total_autoload_size);=0A>>> enhan=
+ced-autoload-manager.php:720 update_option('total_autoload_size',=0A>>>=
+ floatval($settings['total_autoload_size']));=0A>>> enhanced-autoload-ma=
+nager.php:165 update_option('total_autoload_size',=0A>>> $total_size, 'n=
+o');=0A>>> =F0=9F=91=89 Your next stepsRead this email thoroughly.Take t=
+ime to fully=0A>>> understand the issues we've raised. Review the  examp=
+les provided,=0A>>> read the relevant documentation, and research as  ne=
+eded. Our goal is=0A>>> for you to gain a clear understanding of the  pr=
+oblems so you can=0A>>> address them effectively and avoid similar issue=
+s  when maintaining=0A>>> your plugin in the future. Note that there may=
+ be false positives - we=0A>>> are humans and make  mistakes, we apologi=
+ze if there is anything we=0A>>> have gotten wrong. If you  have doubts=
+ you can ask us for=0A>>> clarification, when asking us please be  clear=
+, concise, direct and=0A>>> include an example.The new review processFix=
+ the issues in your plugin=0A>>> based on the feedback and your own revi=
+ew as we may not be sharing all=0A>>> the cases where the same issue hap=
+pens. Use available tools like=0A>>> Plugin Check, PHPCS + WPCS, or simi=
+lar utilities to help identify=0A>>> problems in your code.Test your upd=
+ated plugin on a clean WordPress=0A>>> installation with WP_DEBUG set to=
+ true.=E2=9A=A0=EF=B8=8F Do not skip this step.=0A>>> Testing is essenti=
+al to make sure your fixes actually work and that=0A>>> you haven=E2=80=
+=99t introduced new issues. Go to "Add your plugin" and=0A>>> upload the=
+ updated version. You can continue updating the code there=0A>>> through=
+out the review process =E2=80=94 we'll always check the latest=0A>>> ver=
+sion.Reply to this email. Please be concise and do not list the=0A>>> ch=
+anges =E2=80=94 we will review the entire plugin again =E2=80=94 but do=
+ share=0A>>> any  clarifications or important context you want us to kno=
+w.=E2=84=B9=EF=B8=8F To=0A>>> make this process as quick as possible and=
+ to avoid burden on the=0A>>> volunteers devoting their time to review t=
+his plugin's code, we ask=0A>>> you to thoroughly check all shared issue=
+s and fix them before sending=0A>>> the code back to us. I know we alrea=
+dy asked you to do so, and it is=0A>>> because we are really trying to m=
+ake it very clear. While we try to=0A>>> make our reviews as exhaustive=
+ as possible we, like you,  are humans=0A>>> and may have missed things.=
+ We appreciate your patience and=0A>>> understanding. Review ID: R=0A>>>=
+ enhanced-autoload-manager/raiansar/2Jul25/T2 4Jul25/3.5B=0A>>> --=0A>>>=
+ WordPress Plugin Review Team |=C2=A0plugins@wordpress.org=0A>>> https:/=
+/make.wordpress.org/plugins/=0A>>> https://developer.wordpress.org/plugi=
+ns/wordpress-org/detailed-plugin-guidelines/=0A>>> https://wordpress.org=
+/plugins/plugin-check/=0A>>>=0A>>>=0A>>>> On Thu, Jul 3, 2025 at 12:55 P=
+M UTC, Rai Ansar &lt;hi@raiansar.com&gt; wrote:=0A>>>>=0A>>>>=0A>>>>=0A>=
+>>> Hello, I understand that I have not been very cooperative but I=0A>>=
+>> couldn't update my email no matter what which is why I ended up with=
+=0A>>>> 3rd account. To answer your questions:=0A>>>> 1. Yes, I can rece=
+ive emails.=0A>>>> 2. I'm willing to respond and complete the review pro=
+cess=0A>>>> 3. I understand that if I didn't follow through the process=
+ I'll lose=0A>>>> the ability to host plugins on WordPress forever.=0A>>=
+>>=0A>>>> I appreciate the hardwork you guys are putting in trying to ma=
+ke=0A>>>> WordPress better and accessible, let me know if I can improve=
+ this=0A>>>> process in anyway moving forward.  Kind Regards=0A>>>> Rai=
+ Ansar=0A>>>> https://raiansar.com [1]=0A>>>>=0A>>>> Links:=0A>>>> -----=
+-=0A>>>> [1] https://raiansar.com=0A>>>>=0A>>>>=0A>>>>=0A>>>>> On Wed, J=
+ul 2, 2025 at 6:00 PM UTC, WordPress.org Plugin Directory &lt;plugins@wo=
+rdpress.org&gt; wrote:=0A>>>>>=0A>>>>> Your plugin review has been PENDE=
+D without looking at the code due to=0A>>>>> outstanding issues with you=
+r account.=0A>>>>>=0A>>>>> Your previous plugin submission was rejected=
+ following your lack of=0A>>>>> response to our review. This means eithe=
+r you never replied at all, or=0A>>>>> you failed to complete the review=
+ without telling us you needed to=0A>>>>> cancel the request.=0A>>>>>=0A=
+>>>>> WHAT TO DO NEXT=0A>>>>>=0A>>>>> Before you worry, please know that=
+ the vast majority of these cases=0A>>>>> can be quickly resolved.=0A>>>=
+>>=0A>>>>> We need you to read the whole email, confirm the following:=
+=0A>>>>>=0A>>>>> * you can receive our emails=0A>>>>>=0A>>>>> * you are=
+ willing to respond and complete the review process=0A>>>>>=0A>>>>> * yo=
+u understand that should this happen again, we may decline to=0A>>>>> ho=
+st your plugins at all going forward=0A>>>>>=0A>>>>> If you do that, we=
+ will review this plugin.=0A>>>>>=0A>>>>> Be advised that if you do give=
+ us your word and repeat this issue, we=0A>>>>> will decline to host you=
+r code in the future.=0A>>>>>=0A>>>>> WHY THIS IS IMPORTANT=0A>>>>>=0A>>=
+>>> When people submit plugins and don=E2=80=99t complete the review pro=
+cess, it=0A>>>>> can often be a drain on our resources. We are a 100% vo=
+lunteer review=0A>>>>> team, and having us review your code without host=
+ing means we have=0A>>>>> provided no benefit to users.=0A>>>>>=0A>>>>>=
+ Since we allow developers 3 months (90 days) to respond to a review,=0A=
+>>>>> we feel it is reasonable to expect them to communicate with us. Wh=
+en=0A>>>>> they don't, we assume they do not wish to complete the review=
+ process=0A>>>>> and send an email explaining why the plugin was closed.=
+=0A>>>>>=0A>>>>> When developers demonstrate a pattern of not following=
+ directions, it=0A>>>>> often indicates an issue with communication whic=
+h can be detrimental=0A>>>>> to the volunteers here.=0A>>>>>=0A>>>>> As=
+ such, we push back on developers when we see a history of plugins=0A>>>=
+>> being reviewed but never completed.=0A>>>>>=0A>>>>> --=0A>>>>> WordPr=
+ess Plugin Review Team |=C2=A0plugins@wordpress.org=0A>>>>> https://make=
+.wordpress.org/plugins/=0A>>>>> https://developer.wordpress.org/plugins/=
+wordpress-org/detailed-plugin-guidelines/=0A>>>>> https://wordpress.org/=
+plugins/plugin-check/=0A>>>>>=0A>>>>>=0A>>>>>=0A>>>>=0A>>>=0A>>=0A> =0A=
+=0A
+
+--=_7d990faa353ea14f59dff27231448e51
+Content-Type: text/html; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
+
+<html lang=3D"en">=0A<head>=0A    <meta content=3D"text/html; charset=3D=
+utf-8" http-equiv=3D"Content-Type">=0A</head>=0A<body bgcolor=3D"#ffffff=
+">=0A<div id=3D"hsReplyAbove" class=3D"hsReplyAbove">=0A    <div class=
+=3D"kickstarter-compatible" style=3D"font-family:sans-serif;">=0A      =
+  =0A                        <div>Your review has been successfully comp=
+leted. Details on how to access  your SVN repository will be emailed wit=
+hin 24 hours to the address from  which you submitted your plugin.<br><b=
+r><strong>What to do next</strong><br><br><strong>You do not need to rep=
+ly to <em>this</em> email</strong>, however please read the rest of it :=
+)<br><br>From  this point, we will not re-review your code unless we're=
+ alerted to a  guideline or security issue. We trust you to have the nec=
+essary skills  to manage and maintain your own plugin.<br><br><ol><li>Ad=
+d <u><a href=3D"mailto:plugins@wordpress.org">plugins@wordpress.org</a><=
+/u> to your address book so you don't miss any emails. It is important t=
+hat we can reach you by email to notify you of any issues, changes, or n=
+ews related to your plugin or the directory. </li><li>Follow <a href=3D"=
+https://make.wordpress.org/plugins">https://make.wordpress.org/plugins</=
+a> for important notifications and updates</li><li>Upload your code to t=
+he directory via SVN</li></ol><br>Remember  to review the plugin guideli=
+nes. All plugins and developers, as  well  as support staff, are require=
+d to follow the guidelines.<br><br><ul><li><a href=3D"https://developer.=
+wordpress.org/plugins/wordpress-org/detailed-plugin-guidelines/">https:/=
+/developer.wordpress.org/plugins/wordpress-org/detailed-plugin-guideline=
+s/</a></li></ul><br>Please keep in mind that a successful review <strong=
+>does not</strong> guarantee    that your plugin is free from any and al=
+l security issues or  guideline   violations. We, like you, are humans.=
+ Humans make mistakes.<br><br>We recommend that you continue checking yo=
+ur code with tools such as <a href=3D"https://github.com/WordPress/WordP=
+ress-Coding-Standards">PHPCS+WPCS</a> and <a href=3D"https://wordpress.o=
+rg/plugins/plugin-check/">Plugin Check</a>. It's in everyone's best inte=
+rest to ensure that your plugin stays secure, compatible, and compliant.=
+<br><br>Should  an   issue arise later, your plugin will be closed and y=
+ou will be  notified   to fix it as soon as possible. This is standard o=
+perating  procedure for   all plugins (even the big ones), and we apprec=
+iate your  understanding  of  this policy.<br><br><strong>SVN Tips and T=
+ricks</strong><br><br>If you're new to SVN, it can be a little weird to=
+ get used to. Unlike common uses of repositories like Git, we use SVN as=
+ a <em>release</em> system. This means that you should only be pushing r=
+eady-to-be-used versions of your plugin.<br><br>The automated approval e=
+mail that follows this will contain information as to how to use SVN. We=
+ ask you please read <strong>all</strong> the  links in that email befor=
+e asking us for help. We will not be able to  give you explicit usage di=
+rections, as there are a lot of SVN clients  out there and we are not ex=
+perts in them all. We also cannot upload your  code for you, so you will=
+ be expected to master this system.<br><br>To get started, you should re=
+ad this: <br><br><a href=3D"https://developer.wordpress.org/plugins/word=
+press-org/how-to-use-subversion/">https://developer.wordpress.org/plugin=
+s/wordpress-org/how-to-use-subversion/</a><br><br>Some common points of=
+ confusion are:<br><br><ul><li>SVN user IDs are the same as your WordPre=
+ss.org login ID - not your email address</li><li>User IDs are case sensi=
+tive (if your account is JoDoe123HAY then you must use that exact ID)</l=
+i><li>You can <strong>set up your SVN credentials</strong> (if you haven=
+'t already) in the =E2=80=9CAccount &amp; Security=E2=80=9D section of y=
+our WordPress profile - <a href=3D"https://profiles.wordpress.org/me/pro=
+file/edit/group/3/?screen=3Dsvn-password">https://profiles.wordpress.org=
+/me/profile/edit/group/3/?screen=3Dsvn-password</a></li><li>Your readme=
+ content determines what information is shown on your WordPress.org publ=
+ic page - <a href=3D"https://developer.wordpress.org/plugins/wordpress-o=
+rg/how-your-readme-txt-works/">https://developer.wordpress.org/plugins/w=
+ordpress-org/how-your-readme-txt-works/</a></li><li>Your plugin banners,=
+ screenshots, and icons are handled via the special plugin assets folder=
+ - <a href=3D"https://developer.wordpress.org/plugins/wordpress-org/plug=
+in-assets/">https://developer.wordpress.org/plugins/wordpress-org/plugin=
+-assets/</a></li></ul><br>(In  order to speed up the process for everyon=
+e, please do not reply to this  email unless you have a question. Thank=
+ you and good luck!)</div><br>=0A        <br>--<br>WordPress Plugin Revi=
+ew Team |=C2=A0plugins@wordpress.org<br>https://make.wordpress.org/plugi=
+ns/ <br>https://developer.wordpress.org/plugins/wordpress-org/detailed-p=
+lugin-guidelines/<br>https://wordpress.org/plugins/plugin-check/=0A    =
+                        </div>=0A        <span height=3D"0" style=3D"fon=
+t-size: 0px; height:0px; line-height: 0px; color:#ffffff;" id=3D"hsConte=
+ntRef">{#HS:2987981832-805777#}</span>=0A        <img src=3D"https://sec=
+ure.helpscout.net/notification/convo/read/2987981832/9120028977/" alt=3D=
+""/>        <br>=0A</div>=0A=0A<div class=3D"gmail_quote" style=3D"font-=
+family:sans-serif;">=0A                                                =
+                                                                <div cla=
+ss=3D"gmail_quote" style=3D"font-family:sans-serif;">=0A=09On Tue, Jul 8=
+, 2025 at 4:41 AM UTC, Rai Ansar &lt;hi@raiansar.com&gt; wrote:=0A<block=
+quote type=3D"cite" class=3D"gmail_quote" style=3D"margin: 0 0 0 .8ex; b=
+order-left:1px solid #cccccc; padding-left: 1ex;">=0A    <div style=3D"f=
+ont-family:sans-serif;">=0A                <div><p>=0A    Dear <strong>W=
+ordPress Plugin Review Team,</strong><br>=0A    Thank you for your thoro=
+ugh review of the Enhanced Autoload Manager plugin. I appreciate the tim=
+e and effort you've invested in helping improve the security and quality=
+ of this plugin.<br>=0A    I have carefully addressed all the issues ide=
+ntified in your review and uploaded version 1.5.4 of the plugin. Here's=
+ a summary of the corrections made:<br>=0A    1. <strong>WordPress.org D=
+irectory Assets</strong>: The assets folder containing screenshots has b=
+een completely removed from the plugin zip file. I understand these shou=
+ld be uploaded separately via SVN after approval.<br>=0A    2. <strong>N=
+once Security</strong>: The flawed nonce validation logic has been corre=
+cted. The plugin now properly checks for the presence of GET parameters=
+ and requires valid nonce verification when any parameters are present,=
+ failing early with wp_die() if the nonce is missing or invalid.<br>=0A=
+    3. <strong>Escaping Output</strong>: All translatable strings are no=
+w properly escaped using esc_html__() instead of just __(), including th=
+e instance on line 509 (now line 517) that was specifically mentioned.<b=
+r>=0A    4. <strong>Option Name Prefixing:</strong> All instances of 'to=
+tal_autoload_size' have been updated to 'edal_total_autoload_size' throu=
+ghout the plugin to prevent conflicts with other plugins.<br>=0A    The=
+ updated plugin has been thoroughly tested with:<br>=0A    - WP_DEBUG en=
+abled on a clean WordPress installation<br>=0A    - Plugin Check tool (n=
+ow passes with no errors)<br>=0A    - WordPress 6.8 compatibility verifi=
+ed<br>=0A    - PHP 7.4+ compatibility confirmed<br>=0A    All security b=
+est practices have been implemented, including proper sanitization, esca=
+ping, nonce verification, and capability checks throughout the codebase.=
+<br>=0A    Thank you again for your valuable feedback. I look forward to=
+ your re-review of <strong>version 1.5.4.</strong>=0A</p><div class=3D"h=
+elpscout-signature">=0ABest regards,<br>=0ARai Ansar<br>=0A<a href=3D"ht=
+tps://raiansar.com" target=3D"_blank">https://raiansar.com</a><br>=0A---=
+=0A</div></div>=0A        <br>=0A                                <div cl=
+ass=3D"gmail_quote" style=3D"font-family:sans-serif;">=0A=09On Tue, Jul=
+ 8, 2025 at 4:30 AM UTC, WordPress.org Plugin Directory &lt;plugins@word=
+press.org&gt; wrote:=0A<blockquote type=3D"cite" class=3D"gmail_quote" s=
+tyle=3D"margin: 0 0 0 .8ex; border-left:1px solid #cccccc; padding-left:=
+ 1ex;">=0A    <div style=3D"font-family:sans-serif;">=0A               =
+ <div>This is an automated message to confirm that we have received your=
+ updated plugin file.<br><br>File updated by raiansar, version 1.5.4.<br=
+>Comment: Took care of the vulnerabilities and improper use of classes.<=
+br><br><a href=3D"https://wordpress.org/plugins/files/2025/06/08_04-30-5=
+7_enhanced-autoload-manager.zip" target=3D"_blank">https://wordpress.org=
+/plugins/files/2025/06/08_04-30-57_enhanced-autoload-manager.zip</a></di=
+v><br>=0A        <br>--<br>WordPress Plugin Review Team |=C2=A0plugins@w=
+ordpress.org<br>https://make.wordpress.org/plugins/ <br>https://develope=
+r.wordpress.org/plugins/wordpress-org/detailed-plugin-guidelines/<br>htt=
+ps://wordpress.org/plugins/plugin-check/=0A                            =
+    <div class=3D"gmail_quote" style=3D"font-family:sans-serif;">=0A=09O=
+n Fri, Jul 4, 2025 at 3:31 PM UTC, WordPress.org Plugin Directory &lt;pl=
+ugins@wordpress.org&gt; wrote:=0A<blockquote type=3D"cite" class=3D"gmai=
+l_quote" style=3D"margin: 0 0 0 .8ex; border-left:1px solid #cccccc; pad=
+ding-left: 1ex;">=0A    <div style=3D"font-family:sans-serif;">=0A     =
+           <div><h2>It's time to move forward with the plugin review "ra=
+iansar"!</h2><br><strong>Your plugin is not yet ready to be approved</st=
+rong>, you are  receiving this email because the volunteers have manuall=
+y checked it and  have found some issues in the code / functionality of=
+ your plugin. <br><br>Please <strong>check this email thoroughly</strong=
+>, address any issues listed, test your changes, and upload a corrected=
+ version of your code if all is well. <br><br><h3>The manual review proc=
+ess</h3><ol><li>Your plugin is <strong>checked by a volunteer</strong> w=
+ho will send you the issues found in this email.<br></li><li>You will <s=
+trong>read this email in its entirety</strong>,  checking each issue as=
+ well as the links to the documentation and  examples provided. In case=
+ of any doubt, you will reply to this email  asking for clarification.<b=
+r></li><li>Then you will thoroughly <strong>fix any issues, test your pl=
+ugin, upload a corrected version of your plugin</strong> and reply to th=
+is email.<br></li><li>As soon as the volunteer is able, they/she/he will=
+ <strong>check your corrected plugin again</strong>. <i>Please, be patie=
+nt waiting for a reply</i>. <br><ul><li>If there are no further issues,=
+ the plugin will be approved =F0=9F=8E=89<br></li><li>If there are still=
+ issues, the process will go back to <i>step 1</i> until <strong>all</st=
+rong> the issues have been addressed =F0=9F=AB=B7<i>This is the current=
+ step.</i><br></li></ul></li></ol><br>=E2=9A=A0=EF=B8=8F When you reply=
+ <strong>we will be reviewing your entire plugin again</strong>, so plea=
+se <strong>do not reply until you are sure you have addressed all of the=
+ issues listed</strong>, otherwise your submission will be delayed and e=
+ventually rejected. <br><br><h2>List of issues found</h2><br><br><strong=
+>## WordPress.org directory assets in the plugin code.</strong><br><br>W=
+e've detected WordPress.org directory plugin asset files in your  submis=
+sion. Thanks for including them; However, these files (banners,  icons,=
+ screenshots created for the directory plugin page) are not part  of the=
+ plugin code and should not be included in your plugin zip file. <br><br=
+>Plugin assets should be uploaded to the WordPress.org repository  separ=
+ately after the plugin is approved. This is done through the SVN  access=
+. <br><br>For more information about plugin assets and how to upload the=
+m, please refer to: <a href=3D"https://developer.wordpress.org/plugins/w=
+ordpress-org/plugin-assets/">How Your Plugin Assets Work</a>. <br><br>Fr=
+om your plugin: <br><pre>enhanced-autoload-manager/assets/screenshot-2.p=
+ng=0Aenhanced-autoload-manager/assets/screenshot-1.png=0A</pre><br><br><=
+br><strong>## Nonces and User Permissions Needed for Security</strong><b=
+r><br>Please add a nonce check to your input calls ($_POST, $_GET, $REQU=
+EST) to prevent unauthorized access. <br><br>If you use <code class=3D"i=
+nline-code">wp_ajax_</code>  to trigger submission checks, remember they=
+ also need a nonce check. <br><br>=F0=9F=91=AE Checking permissions: Kee=
+p in mind, a nonce check alone is not  bulletproof security. Do not rely=
+ on nonces for authorization purposes.  When needed, use it together wit=
+h <code class=3D"inline-code">current_user_can()</code>  in order to pre=
+vent users without the right permissions from accessing things they shou=
+ldn't. <br><br>Also make sure that the <strong>nonce logic is correct by=
+ making sure it cannot be bypassed</strong>. Checking the nonce with <co=
+de class=3D"inline-code">current_user_can()</code>   is great, but mixin=
+g it with other checks can make the condition more  complex and, without=
+ realising it, bypassable, remember that <strong>anything</strong> can b=
+e sent through an input, <strong>don't trust any input</strong>. <br><br=
+>Keep performance in mind. Don't check for post submission outside of  f=
+unctions. Doing so means that the check will run on every single load  o=
+f the plugin, which means that every single person who views any page  o=
+n a site using your plugin will be checking for a submission. This will=
+  make your code slow and unwieldy for users on any high traffic site, =
+ leading to instability and eventually crashes. <br><br>The following li=
+nks may assist you in development: <br><br><ul><li><a href=3D"https://de=
+veloper.wordpress.org/plugins/security/nonces/">https://developer.wordpr=
+ess.org/plugins/security/nonces/</a><br></li><li><a href=3D"https://deve=
+loper.wordpress.org/plugins/javascript/ajax/#nonce">https://developer.wo=
+rdpress.org/plugins/javascript/ajax/#nonce</a><br></li><li><a href=3D"ht=
+tps://developer.wordpress.org/plugins/settings/settings-api/">https://de=
+veloper.wordpress.org/plugins/settings/settings-api/</a><br></li></ul><b=
+r>From your plugin: <br><pre>enhanced-autoload-manager.php:170 No nonce=
+ check was found validating the origin of inputs in the lines 170-195 -=
+ in the context of the classMethod Enhanced_Autoload_Manager::display_pa=
+ge()=0A# =E2=86=B3 Line 186: $mode =3D isset($_GET['mode']) ? sanitize_t=
+ext_field(wp_unslash($_GET['mode'])) : 'basic';=0A# =E2=86=B3 Line 187:=
+ $count =3D isset($_GET['count']) ? intval(wp_unslash($_GET['count'])) :=
+ 10;=0A# =E2=86=B3 Line 188: $search =3D isset($_GET['search']) ? saniti=
+ze_text_field(wp_unslash($_GET['search'])) : '';=0A</pre><br><br>Please,=
+  make sure that the nonce logic is correct. It's important to be  cauti=
+ous when structuring conditional checks around nonces.<br><pre>enhanced-=
+autoload-manager.php:182 if (isset($_GET['_wpnonce']) &amp;&amp; !wp_ver=
+ify_nonce(sanitize_text_field(wp_unslash($_GET['_wpnonce'])), $nonce_act=
+ion)) {=0A</pre><br><br><br><strong>Security note</strong>: In the curre=
+nt implementation, the nonce  is only verified if all other conditions a=
+re met first. This means that  if those other conditions aren=E2=80=99t=
+ satisfied, the nonce check is  completely skipped =E2=80=94 effectively=
+ making the nonce optional and opening  up a potential security bypass.=
+ <br><br>This is particularly risky when you use an <code class=3D"inlin=
+e-code">isset()</code>  or <code class=3D"inline-code">!empty()</code> =
+ check combined with <code class=3D"inline-code">!wp_verify_nonce()</cod=
+e>  in an <strong>AND condition</strong>.  In practice, if the nonce is=
+ simply omitted from the request, the  condition won=E2=80=99t be evalua=
+ted at all, defeating the purpose of using  nonces to prevent CSRF. <br>=
+<br>To enforce nonce validation properly, you should fail early if the n=
+once is missing. For example: <br><pre>if ( ! isset( $_POST['enhaauma_no=
+nce'] ) || ! wp_verify_nonce( $_POST['enhaauma_nonce'], 'enhaauma_nonce'=
+ ) ) {=0A    wp_die();=0A}=0A// Nonce is present and valid =E2=80=94 con=
+tinue execution=0A</pre><br>You can also check this with an AND conditio=
+n, in that case the code would look like this: <br><pre>if ( isset( $_PO=
+ST['enhaauma_nonce'] ) &amp;&amp; wp_verify_nonce( $_POST['enhaauma_nonc=
+e'], 'enhaauma_nonce' ) ) {=0A    // Nonce is present and valid inside t=
+his condition.=0A}=0A</pre><br>Example(s) from your plugin: <br><pre>enh=
+anced-autoload-manager.php:182 if (isset($_GET['_wpnonce']) &amp;&amp; !=
+wp_verify_nonce(sanitize_text_field(wp_unslash($_GET['_wpnonce'])), $non=
+ce_action)) {=0A</pre><br><br><br><strong>## Variables and options must=
+ be escaped when echo'd</strong><br><br>Much related to sanitizing every=
+thing, all variables that are echoed  need to be escaped when they're ec=
+hoed, so it can't hijack users or  (worse) admin screens. There are many=
+ esc_*() functions you can use to  make sure you don't show people the w=
+rong data, as well as some that  will allow you to echo HTML safely. <br=
+><br>At this time, we ask you escape <strong>all $-variables, options, a=
+nd any sort of generated data when it is being echoed</strong>.  That me=
+ans you should not be escaping when you build a variable, but  when you=
+ output it at the end. We call this 'escaping late.' <br><br>Besides pro=
+tecting yourself from a possible XSS vulnerability, escaping  late makes=
+ sure that you're keeping the future you safe. While today  your code ma=
+y be only outputted hardcoded content, that may not be true  in the futu=
+re. By taking the time to properly escape <strong>when</strong> you echo=
+, you prevent a mistake in the future from becoming a critical security=
+ issue. <br><br>This remains true of options you've saved to the databas=
+e. Even if  you've properly sanitized when you saved, the tools for sani=
+tizing and  escaping aren't interchangeable. Sanitizing makes sure it's=
+ safe for  processing and storing in the database. Escaping makes it saf=
+e to  output. <br><br>Also keep in mind that sometimes a function is ech=
+oing when it should  really be returning content instead. This is a comm=
+on mistake when it  comes to returning JSON encoded content. Very rarely=
+ is that actually  something you should be echoing at all. Echoing is be=
+cause it needs to  be on the screen, read by a human. Returning (which i=
+s what you would do  with an API) can be json encoded, though remember t=
+o <strong>sanitize</strong> when you save to that json object! <br><br>T=
+here are a number of options to secure all types of content (html, email=
+, etc). Yes, even HTML needs to be properly escaped. <br><br><a href=3D"=
+https://developer.wordpress.org/apis/security/escaping/">https://develop=
+er.wordpress.org/apis/security/escaping/</a><br><br>Remember: You must u=
+se the most appropriate functions for the context.  There is pretty much=
+ an option for everything you could echo. Even  echoing HTML safely. <br=
+><br>Example(s) from your plugin: <br><pre>enhanced-autoload-manager.php=
+:509 __('Need custom WordPress plugins, WooCommerce sites, or server opt=
+imization? Contact %1$s at %2$s', 'enhanced-autoload-manager'),=0A</pre>=
+<br><br><br><strong>Note</strong>: The function <code class=3D"inline-co=
+de">__</code>  retrieves the translation without escaping, please either=
+: <br><ul><li>Use an alternative function that escapes the resulting val=
+ue such as <code class=3D"inline-code">esc_html__</code>  or <code class=
+=3D"inline-code">esc_attr__</code> .<br></li><li>Or wrap the <code class=
+=3D"inline-code">__</code>  function with a proper escaping function suc=
+h as <code class=3D"inline-code">esc_html</code> , <code class=3D"inline=
+-code">esc_attr</code> , <code class=3D"inline-code">wp_kses_post</code>=
+ , etc.<br></li></ul>Examples:<br><pre>&lt;h2&gt;&lt;?php echo esc_html_=
+_('Settings page', 'enhanced-autoload-manager'); ?&gt;&lt;/h2&gt;=0A=0A&=
+lt;h2&gt;&lt;?php echo esc_html(__('Settings page', 'enhanced-autoload-m=
+anager')); ?&gt;&lt;/h2&gt;=0A</pre><br>Example(s) from your plugin: <br=
+><pre>enhanced-autoload-manager.php:509 __('Need custom WordPress plugin=
+s, WooCommerce sites, or server optimization? Contact %1$s at %2$s', 'en=
+hanced-autoload-manager'),=0A</pre><br><br>=E2=9C=94=EF=B8=8F You can ch=
+eck this using <a href=3D"https://wordpress.org/plugins/plugin-check/">P=
+lugin Check</a>.<br><br><br><strong>## Generic function/class/define/nam=
+espace/option names</strong><br><br>All plugins must have unique functio=
+n names, namespaces, defines, class  and option names. This prevents you=
+r plugin from conflicting with other  plugins or themes. We need you to=
+ update your plugin to use more unique  and distinct names. <br><br>A go=
+od way to do this is with a prefix. For example, if your plugin is  call=
+ed "Enhanced Autoload Manager" then you could use names like these: <br>=
+<ul><li>function enhaauma_save_post(){ ... }<br></li><li>class ENHAAUMA_=
+Admin { ... }<br></li><li>update_option( 'enhaauma_options', $options );=
+<br></li><li>register_setting( 'enhaauma_settings', 'enhaauma_user_id',=
+ ... );<br></li><li>define( 'ENHAAUMA_PLUGIN_DIR', plugin_dir_path( __FI=
+LE__ ) );<br></li><li>global $enhaauma_options;<br></li><li>add_action('=
+wp_ajax_enhaauma_save_data', ... );<br></li><li>namespace raiansar\enhan=
+cedautoloadmanager;<br></li></ul><br><i>Disclaimer: These are just examp=
+les that may have been self-generated  from your plugin name, we trust y=
+ou can find better options. If you  have a good alternative, please use=
+ it instead, this is just an example.</i><br><br>Don't try to use two (2=
+) or three (3) letter prefixes anymore. We host  nearly 100-thousand plu=
+gins on WordPress.org alone. There are tens of  thousands more outside o=
+ur servers. Believe us, you=E2=80=99re going to run into  conflicts. <br=
+><br>You also need to avoid the use of __ (double underscores), wp_ , or=
+ _  (single underscore) as a prefix. Those are reserved for WordPress  i=
+tself. You can use them inside your classes, but not as stand-alone  fun=
+ction. <br><br>Please remember, if you're using _n() or __() for transla=
+tion, that's fine. We're <strong>only</strong>  talking about functions=
+ you've created for your plugin, not the core  functions from WordPress.=
+ In fact, those core features are why you need  to not use those prefixe=
+s in your own plugin! You don't want to break  WordPress for your users.=
+ <br><br>Related to this, using if (!function_exists('NAME')) { around a=
+ll your  functions and classes sounds like a great idea until you realiz=
+e the  fatal flaw. If something else has a function with the same name a=
+nd  their code loads first, your plugin will break. Using if-exists shou=
+ld  be reserved for shared libraries only. <br><br>Remember: Good prefix=
+ names are unique and distinct to your plugin. This  will help you and t=
+he next person in debugging, as well as prevent  conflicts. <br><br>Anal=
+ysis result: <br><pre># This plugin is using the prefix "edal" for 12 el=
+ement(s).=0A=0A# Looks like there are elements not using common prefixes=
+.=0Aenhanced-autoload-manager.php:165 update_option('total_autoload_size=
+', $total_size, 'no');=0Aenhanced-autoload-manager.php:675 update_option=
+('total_autoload_size', $total_autoload_size);=0Aenhanced-autoload-manag=
+er.php:720 update_option('total_autoload_size', floatval($settings['tota=
+l_autoload_size']));=0A</pre><br><br><strong>Note</strong>: <strong>Opti=
+ons and Transients must be prefixed</strong>. <br><br>This is really imp=
+ortant because the options are stored in a shared  location and under th=
+e name you have set. If two plugins use the same  name for options, they=
+ will find an interesting conflict when trying to  read information intr=
+oduced by the other plugin. <br><br>Also, once your plugin has active us=
+ers, changing the name of an option  is going to be really tricky, so le=
+t's make it robust from the very  beginning. <br><br>Example(s) from you=
+r plugin: <br><pre>enhanced-autoload-manager.php:675 update_option('tota=
+l_autoload_size', $total_autoload_size);=0Aenhanced-autoload-manager.php=
+:720 update_option('total_autoload_size', floatval($settings['total_auto=
+load_size']));=0Aenhanced-autoload-manager.php:165 update_option('total_=
+autoload_size', $total_size, 'no');=0A</pre><br><br><br><h2>=F0=9F=91=89=
+ Your next steps</h2><br><h3>Read this email thoroughly.</h3><br>Take ti=
+me to fully understand the issues we've raised. Review the  examples pro=
+vided, read the relevant documentation, and research as  needed. Our goa=
+l is for you to gain a clear understanding of the  problems so you can a=
+ddress them effectively and avoid similar issues  when maintaining your=
+ plugin in the future. <br><i>Note that there may be false positives - w=
+e are humans and make  mistakes, we apologize if there is anything we ha=
+ve gotten wrong. If you  have doubts you can ask us for clarification, w=
+hen asking us please be  clear, concise, direct and include an example.<=
+/i><br><br><h3>The new review process</h3><br><ol><li><strong>Fix the is=
+sues</strong> in your plugin based on the feedback and your own review a=
+s we may not be sharing all the cases where the same issue happens. <str=
+ong>Use available tools</strong> like Plugin Check, PHPCS + WPCS, or sim=
+ilar utilities to help identify problems in your code.<br></li><li><stro=
+ng>Test your updated plugin on a clean WordPress installation</strong> w=
+ith <a href=3D"https://developer.wordpress.org/advanced-administration/d=
+ebug/debug-wordpress/" target=3D"_blank">WP_DEBUG set to true</a>.<br><b=
+lockquote><strong>=E2=9A=A0=EF=B8=8F Do not skip this step.</strong> Tes=
+ting is essential to make sure your fixes actually work and that you hav=
+en=E2=80=99t introduced new issues. <br></blockquote></li><li><strong>Go=
+ to </strong><a href=3D"https://wordpress.org/plugins/developers/add/"><=
+strong>"Add your plugin"</strong></a><strong> and upload the updated ver=
+sion</strong>. You can continue updating the code there throughout the r=
+eview process =E2=80=94 we'll always check the latest version.<br></li><=
+li>Reply to this email. Please be concise and do not list the  changes=
+ =E2=80=94 we will review the entire plugin again =E2=80=94 but do share=
+ any  clarifications or important context you want us to know.<br></li><=
+/ol><br>=E2=84=B9=EF=B8=8F To make this process as quick as possible and=
+ to avoid burden on the  volunteers devoting their time to review this p=
+lugin's code, <strong>we ask you to thoroughly check all shared issues a=
+nd fix them before sending the code back to us</strong>. <i>I know we al=
+ready asked you to do so, and it is because we are really trying to make=
+ it very clear</i>. <br><br>While we try to make our reviews as exhausti=
+ve as possible we, like you,  are humans and may have missed things. We=
+ appreciate your patience and  understanding. <br><br>Review ID: R enhan=
+ced-autoload-manager/raiansar/2Jul25/T2 4Jul25/3.5B <br></div><br>=0A  =
+      <br>--<br>WordPress Plugin Review Team |=C2=A0plugins@wordpress.or=
+g<br>https://make.wordpress.org/plugins/ <br>https://developer.wordpress=
+.org/plugins/wordpress-org/detailed-plugin-guidelines/<br>https://wordpr=
+ess.org/plugins/plugin-check/=0A                                <div cla=
+ss=3D"gmail_quote" style=3D"font-family:sans-serif;">=0A=09On Thu, Jul 3=
+, 2025 at 12:55 PM UTC, Rai Ansar &lt;hi@raiansar.com&gt; wrote:=0A<bloc=
+kquote type=3D"cite" class=3D"gmail_quote" style=3D"margin: 0 0 0 .8ex;=
+ border-left:1px solid #cccccc; padding-left: 1ex;">=0A    <div style=3D=
+"font-family:sans-serif;">=0A                <div><p>=0A    Hello, I und=
+erstand that I have not been very cooperative but I couldn't update my e=
+mail no matter what which is why I ended up with 3rd account. To answer=
+ your questions:<br>=0A    1. Yes, I can receive emails.<br>=0A    2. I'=
+m willing to respond and complete the review process<br>=0A    3. I unde=
+rstand that if I didn't follow through the process I'll lose the ability=
+ to host plugins on WordPress forever.<br>=0A    <br>=0A    I appreciate=
+ the hardwork you guys are putting in trying to make WordPress better an=
+d accessible, let me know if I can improve this process in anyway moving=
+ forward.=0A</p><div class=3D"helpscout-signature">=0AKind Regards<br>=
+=0ARai Ansar<br>=0A<a href=3D"https://raiansar.com" target=3D"_blank">ht=
+tps://raiansar.com</a>=0A</div></div>=0A        <br>=0A                =
+                <div class=3D"gmail_quote" style=3D"font-family:sans-ser=
+if;">=0A=09On Wed, Jul 2, 2025 at 6:00 PM UTC, WordPress.org Plugin Dire=
+ctory &lt;plugins@wordpress.org&gt; wrote:=0A<blockquote type=3D"cite" c=
+lass=3D"gmail_quote" style=3D"margin: 0 0 0 .8ex; border-left:1px solid=
+ #cccccc; padding-left: 1ex;">=0A    <div style=3D"font-family:sans-seri=
+f;">=0A                <div>Your plugin review has been <strong>pended</=
+strong> without looking at the code due to outstanding issues with your=
+ account.<br><br>Your previous plugin submission was rejected following=
+ your lack of response to our review. This means either you never replie=
+d at all, or you failed to complete the review without telling us you ne=
+eded to cancel the request.<br><br><strong>What to do next</strong><br><=
+br>Before you worry, please know that the vast majority of these cases c=
+an be quickly resolved.<br><br>We need you to read the whole email, conf=
+irm the following:<br><br><ol><li>you can receive our emails <br></li><l=
+i>you are willing to respond and complete the review process<br></li><li=
+>you understand that should this happen again, we may decline to host yo=
+ur plugins at all going forward<br></li></ol><br>If you do that, we will=
+ review this plugin.<br><br>Be advised that if you do give us your word=
+ and repeat this issue, we will decline to host your code in the future.=
+<br><br><br><strong>Why this is important</strong><br><br>When people su=
+bmit plugins and don=E2=80=99t complete the review process, it can often=
+ be a drain on our resources. We are a 100% volunteer review team, and h=
+aving us review your code without hosting means we have provided no bene=
+fit to users. <br><br>Since we allow developers 3 months (90 days) to re=
+spond to a review, we feel it is reasonable to expect them to communicat=
+e with us. When they don't, we assume they do not wish to complete the r=
+eview process and send an email explaining why the plugin was closed. <b=
+r><br>When developers demonstrate a pattern of not following directions,=
+ it often indicates an issue with communication which can be detrimental=
+ to the volunteers here.<br><br>As such, we push back on developers when=
+ we see a history of plugins being reviewed but never completed.<br></di=
+v><br>=0A        <br>--<br>WordPress Plugin Review Team |=C2=A0plugins@w=
+ordpress.org<br>https://make.wordpress.org/plugins/ <br>https://develope=
+r.wordpress.org/plugins/wordpress-org/detailed-plugin-guidelines/<br>htt=
+ps://wordpress.org/plugins/plugin-check/=0A                            <=
+/div>=0A</blockquote>=0A=0A</div>=0A=0A            </div>=0A</blockquote=
+>=0A=0A</div>=0A=0A            </div>=0A</blockquote>=0A=0A</div>=0A=0A=
+            </div>=0A</blockquote>=0A=0A</div>=0A=0A            </div>=
+=0A</blockquote>=0A=0A</div>=0A=0A</div>=0A</body>=0A</html>=0A
+
+--=_7d990faa353ea14f59dff27231448e51--
