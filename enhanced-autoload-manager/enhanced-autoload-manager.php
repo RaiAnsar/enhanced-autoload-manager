@@ -3,7 +3,7 @@
 Plugin Name: Enhanced Autoload Manager
 Plugin URI: https://raiansar.com/enhanced-autoload-manager
 Description: Manages autoloaded data in the WordPress database, allowing for individual deletion or disabling of autoload entries.
-Version: 1.5.5
+Version: 1.5.6
 Author: Rai Ansar
 Author URI: https://raiansar.com
 License: GPLv3 or later
@@ -24,7 +24,7 @@ if (!defined('EDAL_PLUGIN_PATH')) {
     define('EDAL_PLUGIN_PATH', plugin_dir_path(__FILE__));
 }
 if (!defined('EDAL_VERSION')) {
-    define('EDAL_VERSION', '1.5.5');
+    define('EDAL_VERSION', '1.5.6');
 }
 
 class Enhanced_Autoload_Manager {
@@ -265,7 +265,7 @@ class Enhanced_Autoload_Manager {
                         );
                         echo esc_html( $translated_text );
                     ?></p>
-                    <button type="button" id="edal-refresh-data" class="button button-primary" data-nonce="<?php echo esc_attr(wp_create_nonce('edal_refresh_nonce')); ?>">
+                    <button type="button" id="edal-refresh-data" class="button button-primary" data-nonce="<?php echo esc_attr(wp_create_nonce('edal_nonce')); ?>">
                         <span class="dashicons dashicons-update"></span> <?php esc_html_e('Refresh Data', 'enhanced-autoload-manager'); ?>
                     </button>
                 </div>
@@ -694,7 +694,7 @@ class Enhanced_Autoload_Manager {
         
         wp_send_json_success(array(
             'message' => __('Data refreshed successfully.', 'enhanced-autoload-manager'),
-            'total_size' => round($total_autoload_size / 1024 / 1024, 2)
+            'total_size_mb' => round($total_autoload_size / 1024 / 1024, 2)
         ));
     }
 
@@ -710,7 +710,12 @@ class Enhanced_Autoload_Manager {
             'edal_total_autoload_size' => get_option('edal_total_autoload_size', 0)
         );
         
-        wp_send_json_success($settings);
+        $filename = 'autoload-settings-' . date('Y-m-d-H-i-s') . '.json';
+        
+        wp_send_json_success(array(
+            'export_data' => $settings,
+            'filename' => $filename
+        ));
     }
 
     public function ajax_import_settings() {
