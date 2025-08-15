@@ -3,7 +3,7 @@ Contributors: raiansar
 Tags: autoload, performance, database, optimization, speed
 Requires at least: 5.0
 Tested up to: 6.8
-Stable tag: 1.5.6
+Stable tag: 1.5.7
 Requires PHP: 7.4
 License: GPLv3 or later
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
@@ -65,6 +65,11 @@ Yes, the plugin includes export and import functionality to backup your autoload
 - Simple, modern, and intuitive interface with no dependencies on external libraries
 
 == Changelog ==
+
+= 1.5.7 =
+* Fixed search form security check error - added missing nonce field
+* Fixed clear search link to include proper nonce
+* Search functionality now properly validates security tokens
 
 = 1.5.6 =
 * Fixed AJAX refresh data error - corrected nonce verification issue

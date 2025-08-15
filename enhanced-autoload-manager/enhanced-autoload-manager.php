@@ -3,7 +3,7 @@
 Plugin Name: Enhanced Autoload Manager
 Plugin URI: https://raiansar.com/enhanced-autoload-manager
 Description: Manages autoloaded data in the WordPress database, allowing for individual deletion or disabling of autoload entries.
-Version: 1.5.6
+Version: 1.5.7
 Author: Rai Ansar
 Author URI: https://raiansar.com
 License: GPLv3 or later
@@ -24,7 +24,7 @@ if (!defined('EDAL_PLUGIN_PATH')) {
     define('EDAL_PLUGIN_PATH', plugin_dir_path(__FILE__));
 }
 if (!defined('EDAL_VERSION')) {
-    define('EDAL_VERSION', '1.5.6');
+    define('EDAL_VERSION', '1.5.7');
 }
 
 class Enhanced_Autoload_Manager {
@@ -278,11 +278,12 @@ class Enhanced_Autoload_Manager {
                             <input type="hidden" name="count" value="<?php echo esc_attr($count); ?>">
                             <input type="hidden" name="orderby" value="<?php echo esc_attr($orderby); ?>">
                             <input type="hidden" name="order" value="<?php echo esc_attr($order); ?>">
+                            <?php wp_nonce_field('edal_view_page', '_wpnonce', false); ?>
                             <div class="edal-search-input-wrapper">
                                 <input type="text" name="search" id="edal-search-input" placeholder="<?php esc_attr_e('Search autoload options...', 'enhanced-autoload-manager'); ?>" value="<?php echo esc_attr($search); ?>" class="regular-text">
                                 <button type="submit" class="button button-secondary"><span class="dashicons dashicons-search"></span></button>
                                 <?php if (!empty($search)): ?>
-                                <a href="<?php echo esc_url(remove_query_arg('search')); ?>" class="button button-link" title="<?php esc_attr_e('Clear search', 'enhanced-autoload-manager'); ?>">
+                                <a href="<?php echo esc_url($this->get_admin_url(array('mode' => $mode, 'count' => $count, 'orderby' => $orderby, 'order' => $order))); ?>" class="button button-link" title="<?php esc_attr_e('Clear search', 'enhanced-autoload-manager'); ?>">
                                     <span class="dashicons dashicons-no-alt"></span>
                                 </a>
                                 <?php endif; ?>
