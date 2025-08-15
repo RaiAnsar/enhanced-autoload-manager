@@ -3,7 +3,7 @@
 Plugin Name: Enhanced Autoload Manager
 Plugin URI: https://raiansar.com/enhanced-autoload-manager
 Description: Manages autoloaded data in the WordPress database, allowing for individual deletion or disabling of autoload entries.
-Version: 1.5.7
+Version: 1.5.8
 Author: Rai Ansar
 Author URI: https://raiansar.com
 License: GPLv3 or later
@@ -24,7 +24,7 @@ if (!defined('EDAL_PLUGIN_PATH')) {
     define('EDAL_PLUGIN_PATH', plugin_dir_path(__FILE__));
 }
 if (!defined('EDAL_VERSION')) {
-    define('EDAL_VERSION', '1.5.7');
+    define('EDAL_VERSION', '1.5.8');
 }
 
 class Enhanced_Autoload_Manager {
@@ -424,15 +424,31 @@ class Enhanced_Autoload_Manager {
                                         $disable_nonce = wp_create_nonce('disable_autoload_' . $autoload['option_name']);
                                         $enable_nonce = wp_create_nonce('enable_autoload_' . $autoload['option_name']);
                                     ?>
-                                    <a href="<?php echo esc_url( admin_url( 'tools.php?page=enhanced-autoload-manager&action=delete&option_name=' . urlencode( $autoload['option_name'] ) . '&_wpnonce=' . $delete_nonce ) ); ?>" class="button button-secondary edal-button edal-button-delete">
+                                    <?php
+                                        // Build action URLs with preserved filters
+                                        $action_args = array(
+                                            'page' => 'enhanced-autoload-manager',
+                                            'option_name' => $autoload['option_name'],
+                                            'mode' => $mode,
+                                            'search' => $search,
+                                            'count' => $count,
+                                            'orderby' => $orderby,
+                                            'order' => $order
+                                        );
+                                        
+                                        $delete_url = add_query_arg(array_merge($action_args, array('action' => 'delete', '_wpnonce' => $delete_nonce)), admin_url('tools.php'));
+                                        $disable_url = add_query_arg(array_merge($action_args, array('action' => 'disable', '_wpnonce' => $disable_nonce)), admin_url('tools.php'));
+                                        $enable_url = add_query_arg(array_merge($action_args, array('action' => 'enable', '_wpnonce' => $enable_nonce)), admin_url('tools.php'));
+                                    ?>
+                                    <a href="<?php echo esc_url($delete_url); ?>" class="button button-secondary edal-button edal-button-delete">
                                         <span class="dashicons dashicons-trash"></span> <?php esc_html_e('Delete', 'enhanced-autoload-manager'); ?>
                                     </a>
                                     <?php if ($autoload['is_disabled']): ?>
-                                        <a href="<?php echo esc_url( admin_url( 'tools.php?page=enhanced-autoload-manager&action=enable&option_name=' . urlencode( $autoload['option_name'] ) . '&_wpnonce=' . $enable_nonce ) ); ?>" class="button button-secondary edal-button edal-button-enable">
+                                        <a href="<?php echo esc_url($enable_url); ?>" class="button button-secondary edal-button edal-button-enable">
                                             <span class="dashicons dashicons-visibility"></span> <?php esc_html_e('Enable', 'enhanced-autoload-manager'); ?>
                                         </a>
                                     <?php else: ?>
-                                        <a href="<?php echo esc_url( admin_url( 'tools.php?page=enhanced-autoload-manager&action=disable&option_name=' . urlencode( $autoload['option_name'] ) . '&_wpnonce=' . $disable_nonce ) ); ?>" class="button button-secondary edal-button edal-button-disable">
+                                        <a href="<?php echo esc_url($disable_url); ?>" class="button button-secondary edal-button edal-button-disable">
                                             <span class="dashicons dashicons-hidden"></span> <?php esc_html_e('Disable', 'enhanced-autoload-manager'); ?>
                                         </a>
                                     <?php endif; ?>
@@ -608,7 +624,23 @@ class Enhanced_Autoload_Manager {
             // Update the disabled autoloads list
             update_option('edal_disabled_autoloads', array_unique($disabled_autoloads));
             
-            wp_redirect(add_query_arg('bulk_action_complete', $action));
+            // Preserve current filters when redirecting
+            $redirect_args = array(
+                'page' => 'enhanced-autoload-manager',
+                'bulk_action_complete' => $action
+            );
+            
+            // Preserve filter parameters
+            if (isset($_GET['mode'])) $redirect_args['mode'] = sanitize_text_field(wp_unslash($_GET['mode']));
+            if (isset($_GET['search'])) $redirect_args['search'] = sanitize_text_field(wp_unslash($_GET['search']));
+            if (isset($_GET['count'])) $redirect_args['count'] = intval(wp_unslash($_GET['count']));
+            if (isset($_GET['orderby'])) $redirect_args['orderby'] = sanitize_text_field(wp_unslash($_GET['orderby']));
+            if (isset($_GET['order'])) $redirect_args['order'] = sanitize_text_field(wp_unslash($_GET['order']));
+            
+            $redirect_url = add_query_arg($redirect_args, admin_url('tools.php'));
+            $redirect_url = wp_nonce_url($redirect_url, 'edal_view_page');
+            
+            wp_redirect($redirect_url);
             exit;
         }
 
@@ -657,7 +689,23 @@ class Enhanced_Autoload_Manager {
         wp_cache_delete('alloptions');
         delete_option('edal_total_autoload_size');
 
-        wp_redirect(add_query_arg('action_complete', $action));
+        // Preserve current filters when redirecting
+        $redirect_args = array(
+            'page' => 'enhanced-autoload-manager',
+            'action_complete' => $action
+        );
+        
+        // Preserve filter parameters
+        if (isset($_GET['mode'])) $redirect_args['mode'] = sanitize_text_field(wp_unslash($_GET['mode']));
+        if (isset($_GET['search'])) $redirect_args['search'] = sanitize_text_field(wp_unslash($_GET['search']));
+        if (isset($_GET['count'])) $redirect_args['count'] = intval(wp_unslash($_GET['count']));
+        if (isset($_GET['orderby'])) $redirect_args['orderby'] = sanitize_text_field(wp_unslash($_GET['orderby']));
+        if (isset($_GET['order'])) $redirect_args['order'] = sanitize_text_field(wp_unslash($_GET['order']));
+        
+        $redirect_url = add_query_arg($redirect_args, admin_url('tools.php'));
+        $redirect_url = wp_nonce_url($redirect_url, 'edal_view_page');
+        
+        wp_redirect($redirect_url);
         exit;
     }
 

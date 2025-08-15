@@ -3,7 +3,7 @@ Contributors: raiansar
 Tags: autoload, performance, database, optimization, speed
 Requires at least: 5.0
 Tested up to: 6.8
-Stable tag: 1.5.7
+Stable tag: 1.5.8
 Requires PHP: 7.4
 License: GPLv3 or later
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
@@ -65,6 +65,12 @@ Yes, the plugin includes export and import functionality to backup your autoload
 - Simple, modern, and intuitive interface with no dependencies on external libraries
 
 == Changelog ==
+
+= 1.5.8 =
+* Fixed filter state preservation on delete/disable/enable actions
+* Action buttons now maintain current search, mode, and sort settings
+* Redirects after actions preserve all filter parameters
+* Improved user experience with consistent filtering
 
 = 1.5.7 =
 * Fixed search form security check error - added missing nonce field
