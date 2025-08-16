@@ -3,7 +3,7 @@ Contributors: raiansar
 Tags: autoload, performance, database, optimization, speed
 Requires at least: 5.0
 Tested up to: 6.8
-Stable tag: 1.5.7
+Stable tag: 1.5.10
 Requires PHP: 7.4
 License: GPLv3 or later
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
@@ -63,8 +63,30 @@ Yes, the plugin includes export and import functionality to backup your autoload
 - Filter options by core WordPress, WooCommerce, or Elementor
 - Mobile-responsive design for better usability on all devices
 - Simple, modern, and intuitive interface with no dependencies on external libraries
+- Autoload locking feature to protect important settings from being changed by updates
+- Visual indicators for locked autoload options with easy lock/unlock controls
 
 == Changelog ==
+
+= 1.5.10 =
+* Fixed pagination showing when "All" items is selected
+* Fixed pagination security nonce errors - all pagination links now properly include nonces
+* Improved pagination logic for limited views (10, 20, 50, 100 items)
+* Completely removed pagination when viewing all items
+
+= 1.5.9 =
+* Fixed "All" items per page showing only 20 items instead of all entries
+* Added autoload locking feature to protect important settings
+* Lock/unlock buttons allow you to preserve autoload values across WordPress updates
+* Locked autoloads are automatically restored if changed by WordPress core or plugin updates
+* Visual indicators show which options are currently locked
+* Improved pagination logic for "All" items view
+
+= 1.5.8 =
+* Fixed filter state preservation on delete/disable/enable actions
+* Action buttons now maintain current search, mode, and sort settings
+* Redirects after actions preserve all filter parameters
+* Improved user experience with consistent filtering
 
 = 1.5.7 =
 * Fixed search form security check error - added missing nonce field

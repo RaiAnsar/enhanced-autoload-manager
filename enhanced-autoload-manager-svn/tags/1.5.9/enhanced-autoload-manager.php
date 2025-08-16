@@ -3,7 +3,7 @@
 Plugin Name: Enhanced Autoload Manager
 Plugin URI: https://raiansar.com/enhanced-autoload-manager
 Description: Manages autoloaded data in the WordPress database, allowing for individual deletion or disabling of autoload entries.
-Version: 1.5.10
+Version: 1.5.9
 Author: Rai Ansar
 Author URI: https://raiansar.com
 License: GPLv3 or later
@@ -24,7 +24,7 @@ if (!defined('EDAL_PLUGIN_PATH')) {
     define('EDAL_PLUGIN_PATH', plugin_dir_path(__FILE__));
 }
 if (!defined('EDAL_VERSION')) {
-    define('EDAL_VERSION', '1.5.10');
+    define('EDAL_VERSION', '1.5.9');
 }
 
 class Enhanced_Autoload_Manager {
@@ -267,19 +267,16 @@ class Enhanced_Autoload_Manager {
             return $order === 'ASC' ? $result : -$result;
         });
         
-        // Count total items
+        // Count total items for pagination
         $total_items = count($autoloads);
+        $total_pages = ceil($total_items / $per_page);
         
-        // Apply limit or pagination
-        if ($count === -1) {
-            // Show ALL items without any pagination
-            // $autoloads remains unchanged - show everything
-        } else {
-            // Apply pagination for limited views (10, 20, 50, 100)
-            $total_pages = ceil($total_items / $count);
-            $offset = ($paged - 1) * $count;
-            $autoloads = array_slice($autoloads, $offset, $count);
+        // Apply pagination or limit
+        if ($count !== -1) {
+            // Show specific count
+            $autoloads = array_slice($autoloads, 0, $count);
         }
+        // If count is -1, show ALL items without pagination
 
         ?>
         <div class="wrap">
@@ -523,42 +520,25 @@ class Enhanced_Autoload_Manager {
                 </table>
             </form>
             
-            <?php 
-            // Only show pagination if we're limiting results (count !== -1) AND there are multiple pages
-            // When count is -1, we show ALL items without pagination
-            if ($count !== -1 && $count > 0): 
-                // Recalculate for limited view
-                $limited_total_pages = ceil($total_items / $count);
-                if ($limited_total_pages > 1):
-            ?>
+            <?php if ($count !== -1 && $total_pages > 1): ?>
             <div class="edal-pagination">
                 <?php
-                $pagination_args = array(
-                    'page' => 'enhanced-autoload-manager',
-                    'mode' => $mode,
-                    'count' => $count,
-                    'orderby' => $orderby,
-                    'order' => $order
-                );
+                $base_url = admin_url('tools.php?page=enhanced-autoload-manager&mode=' . $mode . '&count=' . $count . '&orderby=' . $orderby . '&order=' . $order);
                 if (!empty($search)) {
-                    $pagination_args['search'] = $search;
+                    $base_url .= '&search=' . urlencode($search);
                 }
                 
                 // Previous page link
                 if ($paged > 1) {
-                    $prev_args = array_merge($pagination_args, array('paged' => $paged - 1));
-                    $prev_url = $this->get_admin_url($prev_args);
-                    echo '<a href="' . esc_url($prev_url) . '" class="button">&laquo; ' . esc_html__('Previous', 'enhanced-autoload-manager') . '</a>';
+                    echo '<a href="' . esc_url($base_url . '&paged=' . ($paged - 1)) . '" class="button">&laquo; ' . esc_html__('Previous', 'enhanced-autoload-manager') . '</a>';
                 }
                 
                 // Page numbers
                 $start = max(1, $paged - 2);
-                $end = min($limited_total_pages, $paged + 2);
+                $end = min($total_pages, $paged + 2);
                 
                 if ($start > 1) {
-                    $first_args = array_merge($pagination_args, array('paged' => 1));
-                    $first_url = $this->get_admin_url($first_args);
-                    echo '<a href="' . esc_url($first_url) . '" class="button">1</a>';
+                    echo '<a href="' . esc_url($base_url . '&paged=1') . '" class="button">1</a>';
                     if ($start > 2) {
                         echo '<span class="pagination-ellipsis">&hellip;</span>';
                     }
@@ -568,33 +548,24 @@ class Enhanced_Autoload_Manager {
                     if ($i == $paged) {
                         echo '<span class="button button-primary">' . esc_html($i) . '</span>';
                     } else {
-                        $page_args = array_merge($pagination_args, array('paged' => $i));
-                        $page_url = $this->get_admin_url($page_args);
-                        echo '<a href="' . esc_url($page_url) . '" class="button">' . esc_html($i) . '</a>';
+                        echo '<a href="' . esc_url($base_url . '&paged=' . $i) . '" class="button">' . esc_html($i) . '</a>';
                     }
                 }
                 
-                if ($end < $limited_total_pages) {
-                    if ($end < $limited_total_pages - 1) {
+                if ($end < $total_pages) {
+                    if ($end < $total_pages - 1) {
                         echo '<span class="pagination-ellipsis">&hellip;</span>';
                     }
-                    $last_args = array_merge($pagination_args, array('paged' => $limited_total_pages));
-                    $last_url = $this->get_admin_url($last_args);
-                    echo '<a href="' . esc_url($last_url) . '" class="button">' . esc_html($limited_total_pages) . '</a>';
+                    echo '<a href="' . esc_url($base_url . '&paged=' . $total_pages) . '" class="button">' . esc_html($total_pages) . '</a>';
                 }
                 
                 // Next page link
-                if ($paged < $limited_total_pages) {
-                    $next_args = array_merge($pagination_args, array('paged' => $paged + 1));
-                    $next_url = $this->get_admin_url($next_args);
-                    echo '<a href="' . esc_url($next_url) . '" class="button">' . esc_html__('Next', 'enhanced-autoload-manager') . ' &raquo;</a>';
+                if ($paged < $total_pages) {
+                    echo '<a href="' . esc_url($base_url . '&paged=' . ($paged + 1)) . '" class="button">' . esc_html__('Next', 'enhanced-autoload-manager') . ' &raquo;</a>';
                 }
                 ?>
             </div>
-            <?php 
-                endif;
-            endif; 
-            ?>
+            <?php endif; ?>
             
             <div class="edal-status">
                 <span id="edal-status-message"></span>

@@ -3,7 +3,7 @@ Contributors: raiansar
 Tags: autoload, performance, database, optimization, speed
 Requires at least: 5.0
 Tested up to: 6.8
-Stable tag: 1.5.10
+Stable tag: 1.5.9
 Requires PHP: 7.4
 License: GPLv3 or later
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
@@ -67,12 +67,6 @@ Yes, the plugin includes export and import functionality to backup your autoload
 - Visual indicators for locked autoload options with easy lock/unlock controls
 
 == Changelog ==
-
-= 1.5.10 =
-* Fixed pagination showing when "All" items is selected
-* Fixed pagination security nonce errors - all pagination links now properly include nonces
-* Improved pagination logic for limited views (10, 20, 50, 100 items)
-* Completely removed pagination when viewing all items
 
 = 1.5.9 =
 * Fixed "All" items per page showing only 20 items instead of all entries
