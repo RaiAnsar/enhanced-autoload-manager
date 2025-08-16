@@ -3,7 +3,7 @@ Contributors: raiansar
 Tags: autoload, performance, database, optimization, speed
 Requires at least: 5.0
 Tested up to: 6.8
-Stable tag: 1.5.8
+Stable tag: 1.5.9
 Requires PHP: 7.4
 License: GPLv3 or later
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
@@ -63,8 +63,18 @@ Yes, the plugin includes export and import functionality to backup your autoload
 - Filter options by core WordPress, WooCommerce, or Elementor
 - Mobile-responsive design for better usability on all devices
 - Simple, modern, and intuitive interface with no dependencies on external libraries
+- Autoload locking feature to protect important settings from being changed by updates
+- Visual indicators for locked autoload options with easy lock/unlock controls
 
 == Changelog ==
+
+= 1.5.9 =
+* Fixed "All" items per page showing only 20 items instead of all entries
+* Added autoload locking feature to protect important settings
+* Lock/unlock buttons allow you to preserve autoload values across WordPress updates
+* Locked autoloads are automatically restored if changed by WordPress core or plugin updates
+* Visual indicators show which options are currently locked
+* Improved pagination logic for "All" items view
 
 = 1.5.8 =
 * Fixed filter state preservation on delete/disable/enable actions

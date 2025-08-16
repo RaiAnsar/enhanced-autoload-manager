@@ -153,6 +153,50 @@
         color: #fff !important;
     }
 
+    .edal-button-lock {
+        background: #fff;
+        border-color: #ffc107;
+        color: #ffc107;
+    }
+
+    .edal-button-lock:hover {
+        background: #ffc107;
+        border-color: #ffc107;
+        color: #fff !important;
+    }
+
+    .edal-button-unlock {
+        background: #fff;
+        border-color: #17a2b8;
+        color: #17a2b8;
+    }
+
+    .edal-button-unlock:hover {
+        background: #17a2b8;
+        border-color: #17a2b8;
+        color: #fff !important;
+    }
+
+    /* Locked indicator in table rows */
+    .edal-locked-indicator {
+        display: inline-flex;
+        align-items: center;
+        padding: 2px 6px;
+        border-radius: 3px;
+        font-size: 11px;
+        font-weight: 600;
+        background: #fff3cd;
+        color: #856404;
+        margin-left: 8px;
+    }
+
+    .edal-locked-indicator .dashicons {
+        font-size: 14px;
+        width: 14px;
+        height: 14px;
+        margin-right: 3px;
+    }
+
     /* Table styles */
     .wp-list-table {
         border-collapse: separate;

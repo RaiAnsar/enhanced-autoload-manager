@@ -3,7 +3,7 @@
 Plugin Name: Enhanced Autoload Manager
 Plugin URI: https://raiansar.com/enhanced-autoload-manager
 Description: Manages autoloaded data in the WordPress database, allowing for individual deletion or disabling of autoload entries.
-Version: 1.5.8
+Version: 1.5.9
 Author: Rai Ansar
 Author URI: https://raiansar.com
 License: GPLv3 or later
@@ -24,7 +24,7 @@ if (!defined('EDAL_PLUGIN_PATH')) {
     define('EDAL_PLUGIN_PATH', plugin_dir_path(__FILE__));
 }
 if (!defined('EDAL_VERSION')) {
-    define('EDAL_VERSION', '1.5.8');
+    define('EDAL_VERSION', '1.5.9');
 }
 
 class Enhanced_Autoload_Manager {
