@@ -3,7 +3,7 @@ Contributors: raiansar
 Tags: autoload, performance, database, optimization, speed
 Requires at least: 5.0
 Tested up to: 6.8
-Stable tag: 1.5.10
+Stable tag: 1.6.2
 Requires PHP: 7.4
 License: GPLv3 or later
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
@@ -67,6 +67,13 @@ Yes, the plugin includes export and import functionality to backup your autoload
 - Visual indicators for locked autoload options with easy lock/unlock controls
 
 == Changelog ==
+
+= 1.6.2 =
+* Improved table layout with better column width distribution
+* Reduced width of Autoload #, Size, and Status columns
+* Increased width of Option Name and Actions columns to prevent button wrapping
+* Reordered action buttons: Lock, Disable/Enable, Delete, Expand for better workflow
+* Better utilization of screen space for improved user experience
 
 = 1.5.10 =
 * Fixed pagination showing when "All" items is selected
