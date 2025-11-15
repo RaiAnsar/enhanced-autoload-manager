@@ -3,7 +3,7 @@
 Plugin Name: Enhanced Autoload Manager
 Plugin URI: https://raiansar.com/enhanced-autoload-manager
 Description: Manages autoloaded data in the WordPress database, allowing for individual deletion or disabling of autoload entries.
-Version: 1.5.3
+Version: 1.6.3
 Author: Rai Ansar
 Author URI: https://raiansar.com
 License: GPLv3 or later
@@ -24,7 +24,7 @@ if (!defined('EDAL_PLUGIN_PATH')) {
     define('EDAL_PLUGIN_PATH', plugin_dir_path(__FILE__));
 }
 if (!defined('EDAL_VERSION')) {
-    define('EDAL_VERSION', '1.5.3');
+    define('EDAL_VERSION', '1.6.3');
 }
 
 class Enhanced_Autoload_Manager {
@@ -35,6 +35,11 @@ class Enhanced_Autoload_Manager {
         add_action( 'admin_menu', [ $this, 'add_menu_item' ] );
         // Handle actions for deleting and disabling autoloads
         add_action( 'admin_init', [ $this, 'handle_actions' ] );
+        // Restore locked autoloads on multiple hooks to catch all scenarios
+        add_action( 'admin_init', [ $this, 'restore_locked_autoloads' ] ); // Admin page loads
+        add_action( 'init', [ $this, 'restore_locked_autoloads' ] );       // Every request (inc. cron)
+        add_action( 'updated_option', [ $this, 'check_locked_option' ], 10, 3 ); // Real-time protection
+        add_action( 'upgrader_process_complete', [ $this, 'restore_after_update' ], 10, 2 ); // After updates
         // Enqueue custom styles and scripts
         add_action( 'admin_enqueue_scripts', [ $this, 'enqueue_assets' ] );
         // Add a link to the plugin page in the plugin list
@@ -46,6 +51,16 @@ class Enhanced_Autoload_Manager {
         add_action('wp_ajax_edal_dismiss_warning', array($this, 'ajax_dismiss_warning'));
     }
 
+    // Helper function to generate secure URLs with nonce
+    private function get_admin_url($args = array()) {
+        $base_args = array(
+            'page' => 'enhanced-autoload-manager'
+        );
+        $url_args = array_merge($base_args, $args);
+        $url = add_query_arg($url_args, admin_url('tools.php'));
+        return wp_nonce_url($url, 'edal_view_page');
+    }
+
     // Plugin activation hook
     public function activate() {
         // Create default options
@@ -55,6 +70,10 @@ class Enhanced_Autoload_Manager {
         // Store dismissed warnings
         if (!get_option('edal_dismissed_warnings')) {
             add_option('edal_dismissed_warnings', array());
+        }
+        // Store locked autoloads
+        if (!get_option('edal_locked_autoloads')) {
+            add_option('edal_locked_autoloads', array());
         }
     }
 
@@ -85,15 +104,160 @@ class Enhanced_Autoload_Manager {
         ));
     }
 
-    // Add the menu item under Tools
+    // Add the menu item under Tools  
     function add_menu_item() {
-        add_submenu_page( 'tools.php', 'Enhanced Autoload Manager', 'Enhanced Autoload Manager', 'manage_options', 'enhanced-autoload-manager', [ $this, 'display_page' ] );
+        add_submenu_page( 'tools.php', 'Enhanced Autoload Manager', 'E. Autoload Manager', 'manage_options', 'enhanced-autoload-manager', [ $this, 'display_page' ] );
     }
 
     // Add a link to the plugin page in the plugin list
     function add_action_links( $links ) {
         $links[] = '<a href="' . admin_url( 'tools.php?page=enhanced-autoload-manager' ) . '">' . __( 'Manage Autoloads', 'enhanced-autoload-manager' ) . '</a>';
         return $links;
+    }
+
+    // Restore locked autoload values - Enhanced version
+    public function restore_locked_autoloads() {
+        //  Prevent multiple executions in same request
+        static $already_run = false;
+        if ($already_run) {
+            return 0;
+        }
+        $already_run = true;
+
+        $locked_autoloads = get_option('edal_locked_autoloads', array());
+
+        if (empty($locked_autoloads)) {
+            return 0;
+        }
+
+        $restored_count = 0;
+        $restored_options = array();
+
+        global $wpdb;
+        foreach ($locked_autoloads as $option_name => $locked_data) {
+            // Upgrade old format (string) to new format (array)
+            if (!is_array($locked_data)) {
+                $locked_data = array(
+                    'autoload' => $locked_data,
+                    'value' => get_option($option_name),
+                    'locked_at' => current_time('timestamp')
+                );
+                // Save upgraded format
+                $locked_autoloads[$option_name] = $locked_data;
+            }
+
+            // Get current values
+            $current_autoload = $wpdb->get_var($wpdb->prepare(
+                "SELECT autoload FROM {$wpdb->options} WHERE option_name = %s",
+                $option_name
+            ));
+            $current_value = get_option($option_name);
+
+            $needs_restore = false;
+
+            // Check if autoload flag changed
+            if ($current_autoload !== null && $current_autoload !== $locked_data['autoload']) {
+                $needs_restore = true;
+            }
+
+            // Check if value changed (if we have locked value)
+            if (isset($locked_data['value']) && $current_value !== false && $current_value !== $locked_data['value']) {
+                $needs_restore = true;
+            }
+
+            if ($needs_restore) {
+                // Restore autoload flag
+                if ($current_autoload !== $locked_data['autoload']) {
+                    $wpdb->update(
+                        $wpdb->options,
+                        array('autoload' => $locked_data['autoload']),
+                        array('option_name' => $option_name),
+                        array('%s'),
+                        array('%s')
+                    );
+                }
+
+                // Restore value (if we have it)
+                if (isset($locked_data['value']) && $current_value !== $locked_data['value']) {
+                    update_option($option_name, $locked_data['value'], $locked_data['autoload']);
+                }
+
+                // Clear caches
+                wp_cache_delete($option_name, 'options');
+                wp_cache_delete('alloptions', 'options');
+
+                $restored_count++;
+                $restored_options[] = $option_name;
+            }
+        }
+
+        // Update locked autoloads if we upgraded any
+        update_option('edal_locked_autoloads', $locked_autoloads);
+
+        // Show admin notice if options were restored
+        if ($restored_count > 0 && is_admin() && !wp_doing_ajax()) {
+            add_action('admin_notices', function() use ($restored_count, $restored_options) {
+                echo '<div class="notice notice-info is-dismissible">';
+                echo '<p><strong>' . esc_html__('Enhanced Autoload Manager:', 'enhanced-autoload-manager') . '</strong> ';
+                printf(
+                    esc_html(
+                        _n(
+                            '%d locked option was automatically restored.',
+                            '%d locked options were automatically restored.',
+                            $restored_count,
+                            'enhanced-autoload-manager'
+                        )
+                    ),
+                    $restored_count
+                );
+                echo ' <a href="' . esc_url(admin_url('tools.php?page=enhanced-autoload-manager')) . '">' .
+                     esc_html__('View details', 'enhanced-autoload-manager') . '</a>';
+                echo '</p>';
+                if (count($restored_options) <= 5) {
+                    echo '<p><em>' . esc_html__('Restored options:', 'enhanced-autoload-manager') . ' ' .
+                         esc_html(implode(', ', $restored_options)) . '</em></p>';
+                }
+                echo '</div>';
+            });
+        }
+
+        return $restored_count;
+    }
+
+    // Real-time protection: Check if a locked option is being modified
+    public function check_locked_option($option_name, $old_value, $new_value) {
+        $locked_autoloads = get_option('edal_locked_autoloads', array());
+
+        if (!isset($locked_autoloads[$option_name])) {
+            return; // Not locked
+        }
+
+        $locked_data = $locked_autoloads[$option_name];
+        if (!is_array($locked_data)) {
+            return; // Old format, will be handled by restore_locked_autoloads()
+        }
+
+        // Check if value was changed
+        if (isset($locked_data['value']) && $new_value !== $locked_data['value']) {
+            // Immediately restore the locked value
+            remove_action( 'updated_option', [ $this, 'check_locked_option' ], 10 );
+            update_option($option_name, $locked_data['value'], $locked_data['autoload']);
+            add_action( 'updated_option', [ $this, 'check_locked_option' ], 10, 3 );
+
+            // Log the attempt (optional - for debugging)
+            if (defined('WP_DEBUG') && WP_DEBUG) {
+                error_log(sprintf(
+                    'Enhanced Autoload Manager: Prevented modification of locked option "%s"',
+                    $option_name
+                ));
+            }
+        }
+    }
+
+    // Restore locked options after WordPress/plugin updates
+    public function restore_after_update($upgrader_object, $options) {
+        // Trigger restore after any update
+        $this->restore_locked_autoloads();
     }
 
     // Function to get and process autoload data
@@ -104,6 +268,7 @@ class Enhanced_Autoload_Manager {
         $all_options = wp_load_alloptions();
         $autoloads = [];
         $disabled_autoloads = get_option('edal_disabled_autoloads', array());
+        $locked_autoloads = get_option('edal_locked_autoloads', array());
         
         foreach ($all_options as $key => $value) {
             // If search is provided, filter options by name
@@ -118,7 +283,8 @@ class Enhanced_Autoload_Manager {
                 'is_core' => $this->is_core_autoload($key),
                 'is_woocommerce' => strpos($key, 'woocommerce') === 0,
                 'is_elementor' => strpos($key, '_elementor') === 0,
-                'is_disabled' => in_array($key, $disabled_autoloads)
+                'is_disabled' => in_array($key, $disabled_autoloads),
+                'is_locked' => isset($locked_autoloads[$key])
             ];
         }
         
@@ -162,7 +328,7 @@ class Enhanced_Autoload_Manager {
             }
         }
         
-        update_option('total_autoload_size', $total_size, 'no');
+        update_option('edal_total_autoload_size', $total_size, 'no');
         return $total_size;
     }
     
@@ -171,18 +337,26 @@ class Enhanced_Autoload_Manager {
         global $wpdb;
 
         // Get the total autoload size in MBs
-        $total_autoload_size = get_option('total_autoload_size');
+        $total_autoload_size = get_option('edal_total_autoload_size');
         if (false === $total_autoload_size) {
             $total_autoload_size = $this->calculate_total_autoload_size();
         }
         $total_autoload_size_mb = round($total_autoload_size / 1024 / 1024, 2);
 
-        // Check for mode, count, and search parameters with nonce verification
+        // Check if any GET parameters are present that require nonce verification
+        $has_params = isset($_GET['mode']) || isset($_GET['count']) || isset($_GET['search']) || 
+                      isset($_GET['paged']) || isset($_GET['orderby']) || isset($_GET['order']);
+        
         $nonce_action = 'edal_view_page';
-        if (isset($_GET['_wpnonce']) && !wp_verify_nonce(sanitize_text_field(wp_unslash($_GET['_wpnonce'])), $nonce_action)) {
-            // Allow access without nonce for initial page load, but verify for parameter changes
+        
+        // If parameters are present, verify nonce
+        if ($has_params) {
+            if (!isset($_GET['_wpnonce']) || !wp_verify_nonce(sanitize_text_field(wp_unslash($_GET['_wpnonce'])), $nonce_action)) {
+                wp_die(esc_html__('Security check failed. Please refresh the page and try again.', 'enhanced-autoload-manager'));
+            }
         }
         
+        // Now safe to process parameters
         $mode = isset($_GET['mode']) ? sanitize_text_field(wp_unslash($_GET['mode'])) : 'basic';
         $count = isset($_GET['count']) ? intval(wp_unslash($_GET['count'])) : 10;
         $search = isset($_GET['search']) ? sanitize_text_field(wp_unslash($_GET['search'])) : '';
@@ -209,17 +383,18 @@ class Enhanced_Autoload_Manager {
             return $order === 'ASC' ? $result : -$result;
         });
         
-        // Count total items for pagination
+        // Count total items
         $total_items = count($autoloads);
-        $total_pages = ceil($total_items / $per_page);
         
-        // Apply pagination if count is not set to all (-1)
-        if ($count !== -1) {
-            $autoloads = array_slice($autoloads, 0, $count);
+        // Apply limit or pagination
+        if ($count === -1) {
+            // Show ALL items without any pagination
+            // $autoloads remains unchanged - show everything
         } else {
-            // Calculate offset for pagination
-            $offset = ($paged - 1) * $per_page;
-            $autoloads = array_slice($autoloads, $offset, $per_page);
+            // Apply pagination for limited views (10, 20, 50, 100)
+            $total_pages = ceil($total_items / $count);
+            $offset = ($paged - 1) * $count;
+            $autoloads = array_slice($autoloads, $offset, $count);
         }
 
         ?>
@@ -247,7 +422,7 @@ class Enhanced_Autoload_Manager {
                         );
                         echo esc_html( $translated_text );
                     ?></p>
-                    <button type="button" id="edal-refresh-data" class="button button-primary" data-nonce="<?php echo esc_attr(wp_create_nonce('edal_refresh_nonce')); ?>">
+                    <button type="button" id="edal-refresh-data" class="button button-primary" data-nonce="<?php echo esc_attr(wp_create_nonce('edal_nonce')); ?>">
                         <span class="dashicons dashicons-update"></span> <?php esc_html_e('Refresh Data', 'enhanced-autoload-manager'); ?>
                     </button>
                 </div>
@@ -260,11 +435,12 @@ class Enhanced_Autoload_Manager {
                             <input type="hidden" name="count" value="<?php echo esc_attr($count); ?>">
                             <input type="hidden" name="orderby" value="<?php echo esc_attr($orderby); ?>">
                             <input type="hidden" name="order" value="<?php echo esc_attr($order); ?>">
+                            <?php wp_nonce_field('edal_view_page', '_wpnonce', false); ?>
                             <div class="edal-search-input-wrapper">
                                 <input type="text" name="search" id="edal-search-input" placeholder="<?php esc_attr_e('Search autoload options...', 'enhanced-autoload-manager'); ?>" value="<?php echo esc_attr($search); ?>" class="regular-text">
                                 <button type="submit" class="button button-secondary"><span class="dashicons dashicons-search"></span></button>
                                 <?php if (!empty($search)): ?>
-                                <a href="<?php echo esc_url(remove_query_arg('search')); ?>" class="button button-link" title="<?php esc_attr_e('Clear search', 'enhanced-autoload-manager'); ?>">
+                                <a href="<?php echo esc_url($this->get_admin_url(array('mode' => $mode, 'count' => $count, 'orderby' => $orderby, 'order' => $order))); ?>" class="button button-link" title="<?php esc_attr_e('Clear search', 'enhanced-autoload-manager'); ?>">
                                     <span class="dashicons dashicons-no-alt"></span>
                                 </a>
                                 <?php endif; ?>
@@ -290,10 +466,10 @@ class Enhanced_Autoload_Manager {
                 <!-- Mode Selection -->
                 <div class="edal-tab-label"><?php esc_html_e('Mode', 'enhanced-autoload-manager'); ?></div>
                 <div class="edal-tab-section mode-tabs">
-                    <a href="?page=enhanced-autoload-manager&mode=basic<?php echo !empty($search) ? '&search=' . esc_attr($search) : ''; ?>&count=<?php echo esc_attr($count); ?>&orderby=<?php echo esc_attr($orderby); ?>&order=<?php echo esc_attr($order); ?>" class="nav-tab <?php echo $mode === 'basic' ? 'nav-tab-active' : ''; ?>">
+                    <a href="<?php echo esc_url($this->get_admin_url(array('mode' => 'basic', 'search' => $search, 'count' => $count, 'orderby' => $orderby, 'order' => $order))); ?>" class="nav-tab <?php echo $mode === 'basic' ? 'nav-tab-active' : ''; ?>">
                         <span class="dashicons dashicons-shield"></span> <?php esc_html_e('Basic', 'enhanced-autoload-manager'); ?>
                     </a>
-                    <a href="?page=enhanced-autoload-manager&mode=expert<?php echo !empty($search) ? '&search=' . esc_attr($search) : ''; ?>&count=<?php echo esc_attr($count); ?>&orderby=<?php echo esc_attr($orderby); ?>&order=<?php echo esc_attr($order); ?>" class="nav-tab <?php echo $mode === 'expert' ? 'nav-tab-active' : ''; ?>">
+                    <a href="<?php echo esc_url($this->get_admin_url(array('mode' => 'expert', 'search' => $search, 'count' => $count, 'orderby' => $orderby, 'order' => $order))); ?>" class="nav-tab <?php echo $mode === 'expert' ? 'nav-tab-active' : ''; ?>">
                         <span class="dashicons dashicons-admin-tools"></span> <?php esc_html_e('Expert', 'enhanced-autoload-manager'); ?>
                     </a>
                 </div>
@@ -301,13 +477,13 @@ class Enhanced_Autoload_Manager {
                 <!-- Plugin-specific Filters -->
                 <div class="edal-tab-label"><?php esc_html_e('Plugin Filters', 'enhanced-autoload-manager'); ?></div>
                 <div class="edal-tab-section plugin-tabs">
-                    <a href="?page=enhanced-autoload-manager&mode=elementor<?php echo !empty($search) ? '&search=' . esc_attr($search) : ''; ?>&count=<?php echo esc_attr($count); ?>&orderby=<?php echo esc_attr($orderby); ?>&order=<?php echo esc_attr($order); ?>" class="nav-tab <?php echo $mode === 'elementor' ? 'nav-tab-active' : ''; ?>">
+                    <a href="<?php echo esc_url($this->get_admin_url(array('mode' => 'elementor', 'search' => $search, 'count' => $count, 'orderby' => $orderby, 'order' => $order))); ?>" class="nav-tab <?php echo $mode === 'elementor' ? 'nav-tab-active' : ''; ?>">
                         <span class="dashicons dashicons-editor-kitchensink"></span> <?php esc_html_e('Elementor', 'enhanced-autoload-manager'); ?>
                         <?php if ($mode === 'elementor'): ?>
                             <span class="edal-status-badge"><?php echo count(array_filter($autoloads, function($a) { return $a['is_elementor']; })); ?></span>
                         <?php endif; ?>
                     </a>
-                    <a href="?page=enhanced-autoload-manager&mode=woocommerce<?php echo !empty($search) ? '&search=' . esc_attr($search) : ''; ?>&count=<?php echo esc_attr($count); ?>&orderby=<?php echo esc_attr($orderby); ?>&order=<?php echo esc_attr($order); ?>" class="nav-tab <?php echo $mode === 'woocommerce' ? 'nav-tab-active' : ''; ?>">
+                    <a href="<?php echo esc_url($this->get_admin_url(array('mode' => 'woocommerce', 'search' => $search, 'count' => $count, 'orderby' => $orderby, 'order' => $order))); ?>" class="nav-tab <?php echo $mode === 'woocommerce' ? 'nav-tab-active' : ''; ?>">
                         <span class="dashicons dashicons-cart"></span> <?php esc_html_e('WooCommerce', 'enhanced-autoload-manager'); ?>
                         <?php if ($mode === 'woocommerce'): ?>
                             <span class="edal-status-badge"><?php echo count(array_filter($autoloads, function($a) { return $a['is_woocommerce']; })); ?></span>
@@ -318,10 +494,10 @@ class Enhanced_Autoload_Manager {
                 <!-- Status Filters -->
                 <div class="edal-tab-label"><?php esc_html_e('Status', 'enhanced-autoload-manager'); ?></div>
                 <div class="edal-tab-section filter-tabs">
-                    <a href="?page=enhanced-autoload-manager&mode=all<?php echo !empty($search) ? '&search=' . esc_attr($search) : ''; ?>&count=<?php echo esc_attr($count); ?>&orderby=<?php echo esc_attr($orderby); ?>&order=<?php echo esc_attr($order); ?>" class="nav-tab <?php echo $mode === 'all' ? 'nav-tab-active' : ''; ?>">
+                    <a href="<?php echo esc_url($this->get_admin_url(array('mode' => 'all', 'search' => $search, 'count' => $count, 'orderby' => $orderby, 'order' => $order))); ?>" class="nav-tab <?php echo $mode === 'all' ? 'nav-tab-active' : ''; ?>">
                         <span class="dashicons dashicons-list-view"></span> <?php esc_html_e('All', 'enhanced-autoload-manager'); ?>
                     </a>
-                    <a href="?page=enhanced-autoload-manager&mode=disabled<?php echo !empty($search) ? '&search=' . esc_attr($search) : ''; ?>&count=<?php echo esc_attr($count); ?>&orderby=<?php echo esc_attr($orderby); ?>&order=<?php echo esc_attr($order); ?>" class="nav-tab <?php echo $mode === 'disabled' ? 'nav-tab-active' : ''; ?>">
+                    <a href="<?php echo esc_url($this->get_admin_url(array('mode' => 'disabled', 'search' => $search, 'count' => $count, 'orderby' => $orderby, 'order' => $order))); ?>" class="nav-tab <?php echo $mode === 'disabled' ? 'nav-tab-active' : ''; ?>">
                         <span class="dashicons dashicons-hidden"></span> <?php esc_html_e('Disabled', 'enhanced-autoload-manager'); ?>
                         <?php if ($mode === 'disabled'): ?>
                             <span class="edal-status-badge"><?php echo count(array_filter($autoloads, function($a) { return $a['is_disabled']; })); ?></span>
@@ -332,11 +508,11 @@ class Enhanced_Autoload_Manager {
                 <!-- Items per page -->
                 <div class="edal-tab-label"><?php esc_html_e('Items per page', 'enhanced-autoload-manager'); ?></div>
                 <div class="edal-tab-section count-tabs">
-                    <a href="?page=enhanced-autoload-manager&mode=<?php echo esc_attr($mode); ?><?php echo !empty($search) ? '&search=' . esc_attr($search) : ''; ?>&count=10&orderby=<?php echo esc_attr($orderby); ?>&order=<?php echo esc_attr($order); ?>" class="nav-tab <?php echo $count === 10 ? 'nav-tab-active' : ''; ?>">10</a>
-                    <a href="?page=enhanced-autoload-manager&mode=<?php echo esc_attr($mode); ?><?php echo !empty($search) ? '&search=' . esc_attr($search) : ''; ?>&count=20&orderby=<?php echo esc_attr($orderby); ?>&order=<?php echo esc_attr($order); ?>" class="nav-tab <?php echo $count === 20 ? 'nav-tab-active' : ''; ?>">20</a>
-                    <a href="?page=enhanced-autoload-manager&mode=<?php echo esc_attr($mode); ?><?php echo !empty($search) ? '&search=' . esc_attr($search) : ''; ?>&count=50&orderby=<?php echo esc_attr($orderby); ?>&order=<?php echo esc_attr($order); ?>" class="nav-tab <?php echo $count === 50 ? 'nav-tab-active' : ''; ?>">50</a>
-                    <a href="?page=enhanced-autoload-manager&mode=<?php echo esc_attr($mode); ?><?php echo !empty($search) ? '&search=' . esc_attr($search) : ''; ?>&count=100&orderby=<?php echo esc_attr($orderby); ?>&order=<?php echo esc_attr($order); ?>" class="nav-tab <?php echo $count === 100 ? 'nav-tab-active' : ''; ?>">100</a>
-                    <a href="?page=enhanced-autoload-manager&mode=<?php echo esc_attr($mode); ?><?php echo !empty($search) ? '&search=' . esc_attr($search) : ''; ?>&count=-1&orderby=<?php echo esc_attr($orderby); ?>&order=<?php echo esc_attr($order); ?>" class="nav-tab <?php echo $count === -1 ? 'nav-tab-active' : ''; ?>"><?php esc_html_e('All', 'enhanced-autoload-manager'); ?></a>
+                    <a href="<?php echo esc_url($this->get_admin_url(array('mode' => $mode, 'search' => $search, 'count' => 10, 'orderby' => $orderby, 'order' => $order))); ?>" class="nav-tab <?php echo $count === 10 ? 'nav-tab-active' : ''; ?>">10</a>
+                    <a href="<?php echo esc_url($this->get_admin_url(array('mode' => $mode, 'search' => $search, 'count' => 20, 'orderby' => $orderby, 'order' => $order))); ?>" class="nav-tab <?php echo $count === 20 ? 'nav-tab-active' : ''; ?>">20</a>
+                    <a href="<?php echo esc_url($this->get_admin_url(array('mode' => $mode, 'search' => $search, 'count' => 50, 'orderby' => $orderby, 'order' => $order))); ?>" class="nav-tab <?php echo $count === 50 ? 'nav-tab-active' : ''; ?>">50</a>
+                    <a href="<?php echo esc_url($this->get_admin_url(array('mode' => $mode, 'search' => $search, 'count' => 100, 'orderby' => $orderby, 'order' => $order))); ?>" class="nav-tab <?php echo $count === 100 ? 'nav-tab-active' : ''; ?>">100</a>
+                    <a href="<?php echo esc_url($this->get_admin_url(array('mode' => $mode, 'search' => $search, 'count' => -1, 'orderby' => $orderby, 'order' => $order))); ?>" class="nav-tab <?php echo $count === -1 ? 'nav-tab-active' : ''; ?>"><?php esc_html_e('All', 'enhanced-autoload-manager'); ?></a>
                 </div>
             </div>
 
@@ -363,21 +539,21 @@ class Enhanced_Autoload_Manager {
                             <td class="manage-column column-cb check-column">
                                 <input type="checkbox" id="cb-select-all-1">
                             </td>
-                            <th style="width: 10%;"><?php esc_html_e('Autoload #', 'enhanced-autoload-manager'); ?></th>
-                            <th class="sortable <?php echo $orderby === 'name' ? 'sorted ' . esc_attr(strtolower($order)) : ''; ?>">
-                                <a href="?page=enhanced-autoload-manager&mode=<?php echo esc_attr($mode); ?>&orderby=name&order=<?php echo $orderby === 'name' && $order === 'ASC' ? 'DESC' : 'ASC'; ?>&count=<?php echo esc_attr($count); ?><?php echo !empty($search) ? '&search=' . esc_attr($search) : ''; ?>">
+                            <th style="width: 5%;"><?php esc_html_e('Autoload #', 'enhanced-autoload-manager'); ?></th>
+                            <th style="width: 35%;" class="sortable <?php echo $orderby === 'name' ? 'sorted ' . esc_attr(strtolower($order)) : ''; ?>">
+                                <a href="<?php echo esc_url($this->get_admin_url(array('mode' => $mode, 'orderby' => 'name', 'order' => ($orderby === 'name' && $order === 'ASC' ? 'DESC' : 'ASC'), 'count' => $count, 'search' => $search))); ?>">
                                     <?php esc_html_e('Option Name', 'enhanced-autoload-manager'); ?>
                                     <span class="sorting-indicator"></span>
                                 </a>
                             </th>
-                            <th class="sortable <?php echo $orderby === 'size' ? 'sorted ' . esc_attr(strtolower($order)) : ''; ?>">
-                                <a href="?page=enhanced-autoload-manager&mode=<?php echo esc_attr($mode); ?>&orderby=size&order=<?php echo $orderby === 'size' && $order === 'ASC' ? 'DESC' : 'ASC'; ?>&count=<?php echo esc_attr($count); ?><?php echo !empty($search) ? '&search=' . esc_attr($search) : ''; ?>">
+                            <th style="width: 8%;" class="sortable <?php echo $orderby === 'size' ? 'sorted ' . esc_attr(strtolower($order)) : ''; ?>">
+                                <a href="<?php echo esc_url($this->get_admin_url(array('mode' => $mode, 'orderby' => 'size', 'order' => ($orderby === 'size' && $order === 'ASC' ? 'DESC' : 'ASC'), 'count' => $count, 'search' => $search))); ?>">
                                     <?php esc_html_e('Size', 'enhanced-autoload-manager'); ?>
                                     <span class="sorting-indicator"></span>
                                 </a>
                             </th>
-                            <th><?php esc_html_e('Status', 'enhanced-autoload-manager'); ?></th>
-                            <th><?php esc_html_e('Actions', 'enhanced-autoload-manager'); ?></th>
+                            <th style="width: 8%;"><?php esc_html_e('Status', 'enhanced-autoload-manager'); ?></th>
+                            <th style="width: 44%;"><?php esc_html_e('Actions', 'enhanced-autoload-manager'); ?></th>
                         </tr>
                     </thead>
                     <tbody>
@@ -390,7 +566,14 @@ class Enhanced_Autoload_Manager {
                                     <input type="checkbox" name="selected_options[]" value="<?php echo esc_attr($autoload['option_name']); ?>">
                                 </th>
                                 <td><?php echo esc_html( $index + 1 ); ?></td>
-                                <td><?php echo esc_html( $autoload['option_name'] ); ?></td>
+                                <td>
+                                    <?php echo esc_html( $autoload['option_name'] ); ?>
+                                    <?php if ($autoload['is_locked']): ?>
+                                        <span class="edal-locked-indicator">
+                                            <span class="dashicons dashicons-lock"></span> <?php esc_html_e('Locked', 'enhanced-autoload-manager'); ?>
+                                        </span>
+                                    <?php endif; ?>
+                                </td>
                                 <td><?php echo esc_html( $size_display ); ?></td>
                                 <td>
                                     <?php if ($autoload['is_disabled']): ?>
@@ -404,22 +587,59 @@ class Enhanced_Autoload_Manager {
                                         $delete_nonce = wp_create_nonce('delete_autoload_' . $autoload['option_name']);
                                         $disable_nonce = wp_create_nonce('disable_autoload_' . $autoload['option_name']);
                                         $enable_nonce = wp_create_nonce('enable_autoload_' . $autoload['option_name']);
+                                        $lock_nonce = wp_create_nonce('lock_autoload_' . $autoload['option_name']);
+                                        $unlock_nonce = wp_create_nonce('unlock_autoload_' . $autoload['option_name']);
                                     ?>
-                                    <a href="<?php echo esc_url( admin_url( 'tools.php?page=enhanced-autoload-manager&action=delete&option_name=' . urlencode( $autoload['option_name'] ) . '&_wpnonce=' . $delete_nonce ) ); ?>" class="button button-secondary edal-button edal-button-delete">
-                                        <span class="dashicons dashicons-trash"></span> <?php esc_html_e('Delete', 'enhanced-autoload-manager'); ?>
-                                    </a>
-                                    <?php if ($autoload['is_disabled']): ?>
-                                        <a href="<?php echo esc_url( admin_url( 'tools.php?page=enhanced-autoload-manager&action=enable&option_name=' . urlencode( $autoload['option_name'] ) . '&_wpnonce=' . $enable_nonce ) ); ?>" class="button button-secondary edal-button edal-button-enable">
-                                            <span class="dashicons dashicons-visibility"></span> <?php esc_html_e('Enable', 'enhanced-autoload-manager'); ?>
+                                    <?php
+                                        // Build action URLs with preserved filters
+                                        $action_args = array(
+                                            'page' => 'enhanced-autoload-manager',
+                                            'option_name' => $autoload['option_name'],
+                                            'mode' => $mode,
+                                            'search' => $search,
+                                            'count' => $count,
+                                            'orderby' => $orderby,
+                                            'order' => $order
+                                        );
+                                        
+                                        $delete_url = add_query_arg(array_merge($action_args, array('action' => 'delete', '_wpnonce' => $delete_nonce)), admin_url('tools.php'));
+                                        $disable_url = add_query_arg(array_merge($action_args, array('action' => 'disable', '_wpnonce' => $disable_nonce)), admin_url('tools.php'));
+                                        $enable_url = add_query_arg(array_merge($action_args, array('action' => 'enable', '_wpnonce' => $enable_nonce)), admin_url('tools.php'));
+                                        $lock_url = add_query_arg(array_merge($action_args, array('action' => 'lock', '_wpnonce' => $lock_nonce)), admin_url('tools.php'));
+                                        $unlock_url = add_query_arg(array_merge($action_args, array('action' => 'unlock', '_wpnonce' => $unlock_nonce)), admin_url('tools.php'));
+                                    ?>
+                                    <?php if ($autoload['is_locked']): ?>
+                                        <!-- Locked: Only show Unlock and Expand buttons -->
+                                        <a href="<?php echo esc_url($unlock_url); ?>" class="button button-secondary edal-button edal-button-unlock" title="<?php esc_attr_e('Unlock this option to allow modifications', 'enhanced-autoload-manager'); ?>">
+                                            <span class="dashicons dashicons-unlock"></span> <?php esc_html_e('Unlock', 'enhanced-autoload-manager'); ?>
                                         </a>
+                                        <a href="#" class="button button-secondary edal-button edal-button-expand" data-option="<?php echo esc_attr( $autoload['option_value'] ); ?>">
+                                            <span class="dashicons dashicons-editor-expand"></span> <?php esc_html_e('Expand', 'enhanced-autoload-manager'); ?>
+                                        </a>
+                                        <span class="edal-locked-help-text" style="color: #666; font-style: italic; font-size: 12px;">
+                                            <?php esc_html_e('(Unlock to modify)', 'enhanced-autoload-manager'); ?>
+                                        </span>
                                     <?php else: ?>
-                                        <a href="<?php echo esc_url( admin_url( 'tools.php?page=enhanced-autoload-manager&action=disable&option_name=' . urlencode( $autoload['option_name'] ) . '&_wpnonce=' . $disable_nonce ) ); ?>" class="button button-secondary edal-button edal-button-disable">
-                                            <span class="dashicons dashicons-hidden"></span> <?php esc_html_e('Disable', 'enhanced-autoload-manager'); ?>
+                                        <!-- Not locked: Show all buttons -->
+                                        <a href="<?php echo esc_url($lock_url); ?>" class="button button-secondary edal-button edal-button-lock" title="<?php esc_attr_e('Lock this option to prevent automatic changes', 'enhanced-autoload-manager'); ?>">
+                                            <span class="dashicons dashicons-lock"></span> <?php esc_html_e('Lock', 'enhanced-autoload-manager'); ?>
+                                        </a>
+                                        <?php if ($autoload['is_disabled']): ?>
+                                            <a href="<?php echo esc_url($enable_url); ?>" class="button button-secondary edal-button edal-button-enable">
+                                                <span class="dashicons dashicons-visibility"></span> <?php esc_html_e('Enable', 'enhanced-autoload-manager'); ?>
+                                            </a>
+                                        <?php else: ?>
+                                            <a href="<?php echo esc_url($disable_url); ?>" class="button button-secondary edal-button edal-button-disable">
+                                                <span class="dashicons dashicons-hidden"></span> <?php esc_html_e('Disable', 'enhanced-autoload-manager'); ?>
+                                            </a>
+                                        <?php endif; ?>
+                                        <a href="<?php echo esc_url($delete_url); ?>" class="button button-secondary edal-button edal-button-delete">
+                                            <span class="dashicons dashicons-trash"></span> <?php esc_html_e('Delete', 'enhanced-autoload-manager'); ?>
+                                        </a>
+                                        <a href="#" class="button button-secondary edal-button edal-button-expand" data-option="<?php echo esc_attr( $autoload['option_value'] ); ?>">
+                                            <span class="dashicons dashicons-editor-expand"></span> <?php esc_html_e('Expand', 'enhanced-autoload-manager'); ?>
                                         </a>
                                     <?php endif; ?>
-                                    <a href="#" class="button button-secondary edal-button edal-button-expand" data-option="<?php echo esc_attr( $autoload['option_value'] ); ?>">
-                                        <span class="dashicons dashicons-editor-expand"></span> <?php esc_html_e('Expand', 'enhanced-autoload-manager'); ?>
-                                    </a>
                                 </td>
                             </tr>
                         <?php endforeach; ?>
@@ -427,25 +647,42 @@ class Enhanced_Autoload_Manager {
                 </table>
             </form>
             
-            <?php if ($count === -1 && $total_pages > 1): ?>
+            <?php 
+            // Only show pagination if we're limiting results (count !== -1) AND there are multiple pages
+            // When count is -1, we show ALL items without pagination
+            if ($count !== -1 && $count > 0): 
+                // Recalculate for limited view
+                $limited_total_pages = ceil($total_items / $count);
+                if ($limited_total_pages > 1):
+            ?>
             <div class="edal-pagination">
                 <?php
-                $base_url = admin_url('tools.php?page=enhanced-autoload-manager&mode=' . $mode . '&count=' . $count . '&orderby=' . $orderby . '&order=' . $order);
+                $pagination_args = array(
+                    'page' => 'enhanced-autoload-manager',
+                    'mode' => $mode,
+                    'count' => $count,
+                    'orderby' => $orderby,
+                    'order' => $order
+                );
                 if (!empty($search)) {
-                    $base_url .= '&search=' . urlencode($search);
+                    $pagination_args['search'] = $search;
                 }
                 
                 // Previous page link
                 if ($paged > 1) {
-                    echo '<a href="' . esc_url($base_url . '&paged=' . ($paged - 1)) . '" class="button">&laquo; ' . esc_html__('Previous', 'enhanced-autoload-manager') . '</a>';
+                    $prev_args = array_merge($pagination_args, array('paged' => $paged - 1));
+                    $prev_url = $this->get_admin_url($prev_args);
+                    echo '<a href="' . esc_url($prev_url) . '" class="button">&laquo; ' . esc_html__('Previous', 'enhanced-autoload-manager') . '</a>';
                 }
                 
                 // Page numbers
                 $start = max(1, $paged - 2);
-                $end = min($total_pages, $paged + 2);
+                $end = min($limited_total_pages, $paged + 2);
                 
                 if ($start > 1) {
-                    echo '<a href="' . esc_url($base_url . '&paged=1') . '" class="button">1</a>';
+                    $first_args = array_merge($pagination_args, array('paged' => 1));
+                    $first_url = $this->get_admin_url($first_args);
+                    echo '<a href="' . esc_url($first_url) . '" class="button">1</a>';
                     if ($start > 2) {
                         echo '<span class="pagination-ellipsis">&hellip;</span>';
                     }
@@ -455,24 +692,33 @@ class Enhanced_Autoload_Manager {
                     if ($i == $paged) {
                         echo '<span class="button button-primary">' . esc_html($i) . '</span>';
                     } else {
-                        echo '<a href="' . esc_url($base_url . '&paged=' . $i) . '" class="button">' . esc_html($i) . '</a>';
+                        $page_args = array_merge($pagination_args, array('paged' => $i));
+                        $page_url = $this->get_admin_url($page_args);
+                        echo '<a href="' . esc_url($page_url) . '" class="button">' . esc_html($i) . '</a>';
                     }
                 }
                 
-                if ($end < $total_pages) {
-                    if ($end < $total_pages - 1) {
+                if ($end < $limited_total_pages) {
+                    if ($end < $limited_total_pages - 1) {
                         echo '<span class="pagination-ellipsis">&hellip;</span>';
                     }
-                    echo '<a href="' . esc_url($base_url . '&paged=' . $total_pages) . '" class="button">' . esc_html($total_pages) . '</a>';
+                    $last_args = array_merge($pagination_args, array('paged' => $limited_total_pages));
+                    $last_url = $this->get_admin_url($last_args);
+                    echo '<a href="' . esc_url($last_url) . '" class="button">' . esc_html($limited_total_pages) . '</a>';
                 }
                 
                 // Next page link
-                if ($paged < $total_pages) {
-                    echo '<a href="' . esc_url($base_url . '&paged=' . ($paged + 1)) . '" class="button">' . esc_html__('Next', 'enhanced-autoload-manager') . ' &raquo;</a>';
+                if ($paged < $limited_total_pages) {
+                    $next_args = array_merge($pagination_args, array('paged' => $paged + 1));
+                    $next_url = $this->get_admin_url($next_args);
+                    echo '<a href="' . esc_url($next_url) . '" class="button">' . esc_html__('Next', 'enhanced-autoload-manager') . ' &raquo;</a>';
                 }
                 ?>
             </div>
-            <?php endif; ?>
+            <?php 
+                endif;
+            endif; 
+            ?>
             
             <div class="edal-status">
                 <span id="edal-status-message"></span>
@@ -506,7 +752,7 @@ class Enhanced_Autoload_Manager {
             <p><?php 
                 printf(
                     /* translators: 1: Developer name, 2: Developer email */
-                    __('Need custom WordPress plugins, WooCommerce sites, or server optimization? Contact %1$s at %2$s', 'enhanced-autoload-manager'),
+                    esc_html__('Need custom WordPress plugins, WooCommerce sites, or server optimization? Contact %1$s at %2$s', 'enhanced-autoload-manager'),
                     '<strong>Rai Ansar</strong>',
                     '<a href="mailto:hi@raiansar.com">hi@raiansar.com</a>'
                 );
@@ -534,7 +780,7 @@ class Enhanced_Autoload_Manager {
             'comment_order', 'default_comments_page', 'page_comments', 'comments_per_page', 'avatar_default', 'avatar_rating',
             'close_comments_for_old_posts', 'comment_moderation', 'comment_whitelist', 'blacklist_keys', 'use_trackback',
             'default_pingback_flag', 'link_manager_enabled', 'initial_db_version', 'db_version', 'finished_splitting_shared_terms',
-            'finished_updating_comment_type', 'medium_large_size_w', 'medium_large_size_h', 'total_autoload_size'
+            'finished_updating_comment_type', 'medium_large_size_w', 'medium_large_size_h', 'edal_total_autoload_size'
         ];
         foreach ($core_autoloads as $core) {
             if (strpos($option_name, $core) === 0) {
@@ -589,7 +835,23 @@ class Enhanced_Autoload_Manager {
             // Update the disabled autoloads list
             update_option('edal_disabled_autoloads', array_unique($disabled_autoloads));
             
-            wp_redirect(add_query_arg('bulk_action_complete', $action));
+            // Preserve current filters when redirecting
+            $redirect_args = array(
+                'page' => 'enhanced-autoload-manager',
+                'bulk_action_complete' => $action
+            );
+            
+            // Preserve filter parameters
+            if (isset($_GET['mode'])) $redirect_args['mode'] = sanitize_text_field(wp_unslash($_GET['mode']));
+            if (isset($_GET['search'])) $redirect_args['search'] = sanitize_text_field(wp_unslash($_GET['search']));
+            if (isset($_GET['count'])) $redirect_args['count'] = intval(wp_unslash($_GET['count']));
+            if (isset($_GET['orderby'])) $redirect_args['orderby'] = sanitize_text_field(wp_unslash($_GET['orderby']));
+            if (isset($_GET['order'])) $redirect_args['order'] = sanitize_text_field(wp_unslash($_GET['order']));
+            
+            $redirect_url = add_query_arg($redirect_args, admin_url('tools.php'));
+            $redirect_url = wp_nonce_url($redirect_url, 'edal_view_page');
+            
+            wp_redirect($redirect_url);
             exit;
         }
 
@@ -608,10 +870,18 @@ class Enhanced_Autoload_Manager {
 
         if ($action === 'delete') {
             delete_option($option_name);
+
             // Remove from disabled list if it was there
             $disabled_autoloads = get_option('edal_disabled_autoloads', array());
             $disabled_autoloads = array_diff($disabled_autoloads, array($option_name));
             update_option('edal_disabled_autoloads', $disabled_autoloads);
+
+            // Remove from locked list if it was there
+            $locked_autoloads = get_option('edal_locked_autoloads', array());
+            if (isset($locked_autoloads[$option_name])) {
+                unset($locked_autoloads[$option_name]);
+                update_option('edal_locked_autoloads', $locked_autoloads);
+            }
         } elseif ($action === 'disable') {
             $current_value = get_option($option_name);
             if ($current_value !== false) {
@@ -632,13 +902,54 @@ class Enhanced_Autoload_Manager {
                 $disabled_autoloads = array_diff($disabled_autoloads, array($option_name));
                 update_option('edal_disabled_autoloads', $disabled_autoloads);
             }
+        } elseif ($action === 'lock') {
+            // Lock BOTH the autoload flag AND the option value
+            global $wpdb;
+            $current_autoload = $wpdb->get_var($wpdb->prepare(
+                "SELECT autoload FROM {$wpdb->options} WHERE option_name = %s",
+                $option_name
+            ));
+
+            if ($current_autoload !== null) {
+                $locked_autoloads = get_option('edal_locked_autoloads', array());
+                // Store as array with autoload flag, value, and timestamp
+                $locked_autoloads[$option_name] = array(
+                    'autoload' => $current_autoload,
+                    'value' => get_option($option_name),
+                    'locked_at' => current_time('timestamp')
+                );
+                update_option('edal_locked_autoloads', $locked_autoloads);
+            }
+        } elseif ($action === 'unlock') {
+            // Unlock the autoload value
+            $locked_autoloads = get_option('edal_locked_autoloads', array());
+            if (isset($locked_autoloads[$option_name])) {
+                unset($locked_autoloads[$option_name]);
+                update_option('edal_locked_autoloads', $locked_autoloads);
+            }
         }
 
         // Clear cache before redirecting
         wp_cache_delete('alloptions');
-        delete_option('total_autoload_size');
+        delete_option('edal_total_autoload_size');
 
-        wp_redirect(add_query_arg('action_complete', $action));
+        // Preserve current filters when redirecting
+        $redirect_args = array(
+            'page' => 'enhanced-autoload-manager',
+            'action_complete' => $action
+        );
+        
+        // Preserve filter parameters
+        if (isset($_GET['mode'])) $redirect_args['mode'] = sanitize_text_field(wp_unslash($_GET['mode']));
+        if (isset($_GET['search'])) $redirect_args['search'] = sanitize_text_field(wp_unslash($_GET['search']));
+        if (isset($_GET['count'])) $redirect_args['count'] = intval(wp_unslash($_GET['count']));
+        if (isset($_GET['orderby'])) $redirect_args['orderby'] = sanitize_text_field(wp_unslash($_GET['orderby']));
+        if (isset($_GET['order'])) $redirect_args['order'] = sanitize_text_field(wp_unslash($_GET['order']));
+        
+        $redirect_url = add_query_arg($redirect_args, admin_url('tools.php'));
+        $redirect_url = wp_nonce_url($redirect_url, 'edal_view_page');
+        
+        wp_redirect($redirect_url);
         exit;
     }
 
@@ -672,11 +983,11 @@ class Enhanced_Autoload_Manager {
         }
         
         $total_autoload_size = $this->calculate_total_autoload_size();
-        update_option('total_autoload_size', $total_autoload_size);
+        update_option('edal_total_autoload_size', $total_autoload_size);
         
         wp_send_json_success(array(
             'message' => __('Data refreshed successfully.', 'enhanced-autoload-manager'),
-            'total_size' => round($total_autoload_size / 1024 / 1024, 2)
+            'total_size_mb' => round($total_autoload_size / 1024 / 1024, 2)
         ));
     }
 
@@ -689,10 +1000,15 @@ class Enhanced_Autoload_Manager {
         
         $settings = array(
             'disabled_autoloads' => get_option('edal_disabled_autoloads', array()),
-            'total_autoload_size' => get_option('total_autoload_size', 0)
+            'edal_total_autoload_size' => get_option('edal_total_autoload_size', 0)
         );
         
-        wp_send_json_success($settings);
+        $filename = 'autoload-settings-' . date('Y-m-d-H-i-s') . '.json';
+        
+        wp_send_json_success(array(
+            'export_data' => $settings,
+            'filename' => $filename
+        ));
     }
 
     public function ajax_import_settings() {
@@ -716,8 +1032,8 @@ class Enhanced_Autoload_Manager {
             update_option('edal_disabled_autoloads', $settings['disabled_autoloads']);
         }
         
-        if (isset($settings['total_autoload_size'])) {
-            update_option('total_autoload_size', floatval($settings['total_autoload_size']));
+        if (isset($settings['edal_total_autoload_size'])) {
+            update_option('edal_total_autoload_size', floatval($settings['edal_total_autoload_size']));
         }
         
         wp_send_json_success(array('message' => __('Settings imported successfully.', 'enhanced-autoload-manager')));

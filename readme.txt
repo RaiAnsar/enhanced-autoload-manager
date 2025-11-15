@@ -3,7 +3,7 @@ Contributors: raiansar
 Tags: autoload, autoloads, autoload manager, enhanced autoload, autoload optimization, performance, database cleanup, wordpress optimization, site speed, database manager
 Requires at least: 5.0
 Tested up to: 6.8
-Stable tag: 1.5.3
+Stable tag: 1.6.3
 Requires PHP: 7.4
 License: GPLv3 or later
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
@@ -65,6 +65,20 @@ Yes, the plugin includes export and import functionality to backup your autoload
 - Simple, modern, and intuitive interface with no dependencies on external libraries
 
 == Changelog ==
+
+= 1.6.3 =
+* CRITICAL FIX: Locking feature now reliably prevents automatic modifications from WordPress/plugin updates
+* Fixed: Locked options now preserve BOTH autoload flag AND option value (not just flag)
+* Fixed: Restore hooks now run on init, admin_init, updated_option, and upgrader_process_complete
+* Fixed: Real-time protection against option value changes via updated_option hook
+* Fixed: UI now hides Disable/Delete buttons for locked options to prevent user confusion
+* Fixed: Deleted options are now properly removed from lock list
+* Added: Admin notices when locked options are automatically restored
+* Added: Automatic upgrade of old lock data format (string) to new format (array with value + timestamp)
+* Added: Debug logging when WP_DEBUG is enabled for lock violations
+* Added: Helpful tooltip "(Unlock to modify)" for locked options
+* Improved: Lock data now includes autoload flag, full option value, and locked_at timestamp
+* Improved: Prevents multiple restore executions in same request for better performance
 
 = 1.5.3 =
 * Fixed Plugin Check compliance issues
