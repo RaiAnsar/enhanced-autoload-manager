@@ -2,7 +2,7 @@
 Contributors: raiansar
 Tags: autoload, autoloads, autoload manager, enhanced autoload, autoload optimization, performance, database cleanup, wordpress optimization, site speed, database manager
 Requires at least: 5.0
-Tested up to: 6.8
+Tested up to: 6.8.3
 Stable tag: 1.6.3
 Requires PHP: 7.4
 License: GPLv3 or later

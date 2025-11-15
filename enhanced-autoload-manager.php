@@ -10,7 +10,7 @@ License: GPLv3 or later
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 Text Domain: enhanced-autoload-manager
 Requires at least: 5.0
-Tested up to: 6.8
+Tested up to: 6.8.3
 Requires PHP: 7.4
 */
 
@@ -30,7 +30,7 @@ if (!defined('EDAL_VERSION')) {
 class Enhanced_Autoload_Manager {
     private $version = EDAL_VERSION;
 
-    function __construct() {
+    public function __construct() {
         // Add the menu item under Tools
         add_action( 'admin_menu', [ $this, 'add_menu_item' ] );
         // Handle actions for deleting and disabling autoloads
@@ -85,7 +85,7 @@ class Enhanced_Autoload_Manager {
     }
 
     // Enqueue custom styles and scripts
-    function enqueue_assets($hook) {
+    public function enqueue_assets($hook) {
         // Only load on our plugin page
         if ('tools_page_enhanced-autoload-manager' !== $hook) {
             return;
@@ -104,13 +104,13 @@ class Enhanced_Autoload_Manager {
         ));
     }
 
-    // Add the menu item under Tools  
-    function add_menu_item() {
+    // Add the menu item under Tools
+    public function add_menu_item() {
         add_submenu_page( 'tools.php', 'Enhanced Autoload Manager', 'E. Autoload Manager', 'manage_options', 'enhanced-autoload-manager', [ $this, 'display_page' ] );
     }
 
     // Add a link to the plugin page in the plugin list
-    function add_action_links( $links ) {
+    public function add_action_links( $links ) {
         $links[] = '<a href="' . admin_url( 'tools.php?page=enhanced-autoload-manager' ) . '">' . __( 'Manage Autoloads', 'enhanced-autoload-manager' ) . '</a>';
         return $links;
     }
@@ -312,28 +312,29 @@ class Enhanced_Autoload_Manager {
     
     // Calculate total autoload size
     private function calculate_total_autoload_size() {
+        global $wpdb;
         $all_options = wp_load_alloptions();
         $total_size = 0;
-        
+
         foreach ($all_options as $key => $value) {
-            $option_row = $GLOBALS['wpdb']->get_row(
-                $GLOBALS['wpdb']->prepare(
-                    "SELECT autoload FROM {$GLOBALS['wpdb']->options} WHERE option_name = %s",
+            $option_row = $wpdb->get_row(
+                $wpdb->prepare(
+                    "SELECT autoload FROM {$wpdb->options} WHERE option_name = %s",
                     $key
                 )
             );
-            
+
             if ($option_row && $option_row->autoload === 'yes') {
                 $total_size += strlen($value);
             }
         }
-        
+
         update_option('edal_total_autoload_size', $total_size, 'no');
         return $total_size;
     }
     
     // Display the plugin page
-    function display_page() {
+    public function display_page() {
         global $wpdb;
 
         // Get the total autoload size in MBs
@@ -763,7 +764,7 @@ class Enhanced_Autoload_Manager {
     }
 
     // Function to determine if an autoload option is core
-    function is_core_autoload($option_name) {
+    private function is_core_autoload($option_name) {
         $core_autoloads = [
             '_transient_wp_core_block_css_files', 'rewrite_rules', 'wp_user_roles', 'cron', 'widget_', 'sidebars_widgets',
             'active_plugins', 'siteurl', 'home', 'admin_email', 'blogname', 'blogdescription', 'uploads_use_yearmonth_folders',
@@ -790,9 +791,9 @@ class Enhanced_Autoload_Manager {
         return false;
     }
 
-    
+
     // Handle the actions for deleting and disabling autoloads
-    function handle_actions() {
+    public function handle_actions() {
         if (!isset($_GET['page']) || $_GET['page'] !== 'enhanced-autoload-manager') {
             return;
         }
