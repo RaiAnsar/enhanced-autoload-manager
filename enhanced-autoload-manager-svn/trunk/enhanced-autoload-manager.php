@@ -3,14 +3,14 @@
 Plugin Name: Enhanced Autoload Manager
 Plugin URI: https://raiansar.com/enhanced-autoload-manager
 Description: Manages autoloaded data in the WordPress database, allowing for individual deletion or disabling of autoload entries.
-Version: 1.6.2
+Version: 1.6.4
 Author: Rai Ansar
 Author URI: https://raiansar.com
 License: GPLv3 or later
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 Text Domain: enhanced-autoload-manager
 Requires at least: 5.0
-Tested up to: 6.8
+Tested up to: 7.0
 Requires PHP: 7.4
 */
 
@@ -24,19 +24,22 @@ if (!defined('EDAL_PLUGIN_PATH')) {
     define('EDAL_PLUGIN_PATH', plugin_dir_path(__FILE__));
 }
 if (!defined('EDAL_VERSION')) {
-    define('EDAL_VERSION', '1.6.2');
+    define('EDAL_VERSION', '1.6.4');
 }
 
 class Enhanced_Autoload_Manager {
     private $version = EDAL_VERSION;
 
-    function __construct() {
+    public function __construct() {
         // Add the menu item under Tools
         add_action( 'admin_menu', [ $this, 'add_menu_item' ] );
         // Handle actions for deleting and disabling autoloads
         add_action( 'admin_init', [ $this, 'handle_actions' ] );
-        // Restore locked autoloads on admin init
-        add_action( 'admin_init', [ $this, 'restore_locked_autoloads' ] );
+        // Restore locked autoloads on multiple hooks to catch all scenarios
+        add_action( 'admin_init', [ $this, 'restore_locked_autoloads' ] ); // Admin page loads
+        add_action( 'init', [ $this, 'restore_locked_autoloads' ] );       // Every request (inc. cron)
+        add_action( 'updated_option', [ $this, 'check_locked_option' ], 10, 3 ); // Real-time protection
+        add_action( 'upgrader_process_complete', [ $this, 'restore_after_update' ], 10, 2 ); // After updates
         // Enqueue custom styles and scripts
         add_action( 'admin_enqueue_scripts', [ $this, 'enqueue_assets' ] );
         // Add a link to the plugin page in the plugin list
@@ -82,7 +85,7 @@ class Enhanced_Autoload_Manager {
     }
 
     // Enqueue custom styles and scripts
-    function enqueue_assets($hook) {
+    public function enqueue_assets($hook) {
         // Only load on our plugin page
         if ('tools_page_enhanced-autoload-manager' !== $hook) {
             return;
@@ -101,60 +104,184 @@ class Enhanced_Autoload_Manager {
         ));
     }
 
-    // Add the menu item under Tools  
-    function add_menu_item() {
+    // Add the menu item under Tools
+    public function add_menu_item() {
         add_submenu_page( 'tools.php', 'Enhanced Autoload Manager', 'E. Autoload Manager', 'manage_options', 'enhanced-autoload-manager', [ $this, 'display_page' ] );
     }
 
     // Add a link to the plugin page in the plugin list
-    function add_action_links( $links ) {
+    public function add_action_links( $links ) {
         $links[] = '<a href="' . admin_url( 'tools.php?page=enhanced-autoload-manager' ) . '">' . __( 'Manage Autoloads', 'enhanced-autoload-manager' ) . '</a>';
         return $links;
     }
 
-    // Restore locked autoload values
+    // Restore locked autoload values - Enhanced version
     public function restore_locked_autoloads() {
-        $locked_autoloads = get_option('edal_locked_autoloads', array());
-        
-        if (empty($locked_autoloads)) {
-            return;
+        //  Prevent multiple executions in same request
+        static $already_run = false;
+        if ($already_run) {
+            return 0;
         }
-        
+        $already_run = true;
+
+        $locked_autoloads = get_option('edal_locked_autoloads', array());
+
+        if (empty($locked_autoloads)) {
+            return 0;
+        }
+
+        $restored_count = 0;
+        $restored_options = array();
+
         global $wpdb;
-        foreach ($locked_autoloads as $option_name => $locked_value) {
-            // Get current autoload value
-            $current = $wpdb->get_var($wpdb->prepare(
+        foreach ($locked_autoloads as $option_name => $locked_data) {
+            // Upgrade old format (string) to new format (array)
+            if (!is_array($locked_data)) {
+                $locked_data = array(
+                    'autoload' => $locked_data,
+                    'value' => get_option($option_name),
+                    'locked_at' => time()
+                );
+                // Save upgraded format
+                $locked_autoloads[$option_name] = $locked_data;
+            }
+
+            // Get current values
+            $current_autoload = $wpdb->get_var($wpdb->prepare(
                 "SELECT autoload FROM {$wpdb->options} WHERE option_name = %s",
                 $option_name
             ));
-            
-            // If it's different from locked value, restore it
-            if ($current !== null && $current !== $locked_value) {
-                $wpdb->update(
-                    $wpdb->options,
-                    array('autoload' => $locked_value),
-                    array('option_name' => $option_name),
-                    array('%s'),
-                    array('%s')
-                );
-                // Clear cache
+            $current_value = get_option($option_name);
+
+            $needs_restore = false;
+
+            // Check if autoload flag changed
+            if ($current_autoload !== null && $current_autoload !== $locked_data['autoload']) {
+                $needs_restore = true;
+            }
+
+            // Check if value changed (if we have locked value)
+            if (isset($locked_data['value']) && $current_value !== false && $current_value !== $locked_data['value']) {
+                $needs_restore = true;
+            }
+
+            if ($needs_restore) {
+                // Restore autoload flag
+                if ($current_autoload !== $locked_data['autoload']) {
+                    $wpdb->update(
+                        $wpdb->options,
+                        array('autoload' => $locked_data['autoload']),
+                        array('option_name' => $option_name),
+                        array('%s'),
+                        array('%s')
+                    );
+                }
+
+                // Restore value (if we have it)
+                if (isset($locked_data['value']) && $current_value !== $locked_data['value']) {
+                    update_option($option_name, $locked_data['value'], $locked_data['autoload']);
+                }
+
+                // Clear caches
                 wp_cache_delete($option_name, 'options');
                 wp_cache_delete('alloptions', 'options');
+
+                $restored_count++;
+                $restored_options[] = $option_name;
+            }
+        }
+
+        // Update locked autoloads if we upgraded any
+        update_option('edal_locked_autoloads', $locked_autoloads);
+
+        // Show admin notice if options were restored
+        if ($restored_count > 0 && is_admin() && !wp_doing_ajax()) {
+            add_action('admin_notices', function() use ($restored_count, $restored_options) {
+                echo '<div class="notice notice-info is-dismissible">';
+                echo '<p><strong>' . esc_html__('Enhanced Autoload Manager:', 'enhanced-autoload-manager') . '</strong> ';
+                printf(
+                    esc_html(
+                        _n(
+                            '%d locked option was automatically restored.',
+                            '%d locked options were automatically restored.',
+                            $restored_count,
+                            'enhanced-autoload-manager'
+                        )
+                    ),
+                    $restored_count
+                );
+                echo ' <a href="' . esc_url(admin_url('tools.php?page=enhanced-autoload-manager')) . '">' .
+                     esc_html__('View details', 'enhanced-autoload-manager') . '</a>';
+                echo '</p>';
+                if (count($restored_options) <= 5) {
+                    echo '<p><em>' . esc_html__('Restored options:', 'enhanced-autoload-manager') . ' ' .
+                         esc_html(implode(', ', $restored_options)) . '</em></p>';
+                }
+                echo '</div>';
+            });
+        }
+
+        return $restored_count;
+    }
+
+    // Real-time protection: Check if a locked option is being modified
+    public function check_locked_option($option_name, $old_value, $new_value) {
+        $locked_autoloads = get_option('edal_locked_autoloads', array());
+
+        if (!isset($locked_autoloads[$option_name])) {
+            return; // Not locked
+        }
+
+        $locked_data = $locked_autoloads[$option_name];
+        if (!is_array($locked_data)) {
+            return; // Old format, will be handled by restore_locked_autoloads()
+        }
+
+        // Check if value was changed
+        if (isset($locked_data['value']) && $new_value !== $locked_data['value']) {
+            // Immediately restore the locked value
+            remove_action( 'updated_option', [ $this, 'check_locked_option' ], 10 );
+            update_option($option_name, $locked_data['value'], $locked_data['autoload']);
+            add_action( 'updated_option', [ $this, 'check_locked_option' ], 10, 3 );
+
+            // Log the attempt (optional - for debugging)
+            if (defined('WP_DEBUG') && WP_DEBUG) {
+                error_log(sprintf(
+                    'Enhanced Autoload Manager: Prevented modification of locked option "%s"',
+                    $option_name
+                ));
             }
         }
     }
 
+    // Restore locked options after WordPress/plugin updates
+    public function restore_after_update($upgrader_object, $options) {
+        // Trigger restore after any update
+        $this->restore_locked_autoloads();
+    }
+
     // Function to get and process autoload data
     private function get_autoload_data($mode = 'basic', $search = '') {
-        global $wpdb;
-        
         // Get all options
         $all_options = wp_load_alloptions();
         $autoloads = [];
         $disabled_autoloads = get_option('edal_disabled_autoloads', array());
         $locked_autoloads = get_option('edal_locked_autoloads', array());
-        
-        foreach ($all_options as $key => $value) {
+
+        // wp_load_alloptions() only returns autoload=yes options. Disabled
+        // options (autoload=no) must be pulled in explicitly or they vanish from
+        // every view — including the Disabled tab and their own Enable button.
+        $values = $all_options;
+        foreach ($disabled_autoloads as $name) {
+            if (!isset($values[$name])) {
+                $disabled_value = get_option($name, null);
+                if ($disabled_value !== null) {
+                    $values[$name] = maybe_serialize($disabled_value);
+                }
+            }
+        }
+
+        foreach ($values as $key => $value) {
             // If search is provided, filter options by name
             if (!empty($search) && stripos($key, $search) === false) {
                 continue;
@@ -163,7 +290,7 @@ class Enhanced_Autoload_Manager {
             $autoloads[] = [
                 'option_name' => $key,
                 'option_value' => $value,
-                'option_size' => strlen($value),
+                'option_size' => strlen((string) $value),
                 'is_core' => $this->is_core_autoload($key),
                 'is_woocommerce' => strpos($key, 'woocommerce') === 0,
                 'is_elementor' => strpos($key, '_elementor') === 0,
@@ -196,28 +323,21 @@ class Enhanced_Autoload_Manager {
     
     // Calculate total autoload size
     private function calculate_total_autoload_size() {
-        $all_options = wp_load_alloptions();
+        // wp_load_alloptions() already returns only autoloaded options, so the
+        // sum of their value sizes is the total autoload size. No per-option
+        // query needed (the old version ran one SELECT per option — an N+1 that
+        // fired on every page load and refresh).
         $total_size = 0;
-        
-        foreach ($all_options as $key => $value) {
-            $option_row = $GLOBALS['wpdb']->get_row(
-                $GLOBALS['wpdb']->prepare(
-                    "SELECT autoload FROM {$GLOBALS['wpdb']->options} WHERE option_name = %s",
-                    $key
-                )
-            );
-            
-            if ($option_row && $option_row->autoload === 'yes') {
-                $total_size += strlen($value);
-            }
+        foreach (wp_load_alloptions() as $value) {
+            $total_size += strlen((string) $value);
         }
-        
+
         update_option('edal_total_autoload_size', $total_size, 'no');
         return $total_size;
     }
     
     // Display the plugin page
-    function display_page() {
+    public function display_page() {
         global $wpdb;
 
         // Get the total autoload size in MBs
@@ -243,6 +363,10 @@ class Enhanced_Autoload_Manager {
         // Now safe to process parameters
         $mode = isset($_GET['mode']) ? sanitize_text_field(wp_unslash($_GET['mode'])) : 'basic';
         $count = isset($_GET['count']) ? intval(wp_unslash($_GET['count'])) : 10;
+        // -1 means "show all"; any other non-positive value would divide by zero below.
+        if ($count !== -1 && $count < 1) {
+            $count = 10;
+        }
         $search = isset($_GET['search']) ? sanitize_text_field(wp_unslash($_GET['search'])) : '';
         $paged = isset($_GET['paged']) ? max(1, intval(wp_unslash($_GET['paged']))) : 1;
         $orderby = isset($_GET['orderby']) ? sanitize_text_field(wp_unslash($_GET['orderby'])) : 'size';
@@ -493,29 +617,37 @@ class Enhanced_Autoload_Manager {
                                         $unlock_url = add_query_arg(array_merge($action_args, array('action' => 'unlock', '_wpnonce' => $unlock_nonce)), admin_url('tools.php'));
                                     ?>
                                     <?php if ($autoload['is_locked']): ?>
-                                        <a href="<?php echo esc_url($unlock_url); ?>" class="button button-secondary edal-button edal-button-unlock" title="<?php esc_attr_e('Unlock this autoload value', 'enhanced-autoload-manager'); ?>">
+                                        <!-- Locked: Only show Unlock and Expand buttons -->
+                                        <a href="<?php echo esc_url($unlock_url); ?>" class="button button-secondary edal-button edal-button-unlock" title="<?php esc_attr_e('Unlock this option to allow modifications', 'enhanced-autoload-manager'); ?>">
                                             <span class="dashicons dashicons-unlock"></span> <?php esc_html_e('Unlock', 'enhanced-autoload-manager'); ?>
                                         </a>
+                                        <a href="#" class="button button-secondary edal-button edal-button-expand" data-option="<?php echo esc_attr( $autoload['option_value'] ); ?>">
+                                            <span class="dashicons dashicons-editor-expand"></span> <?php esc_html_e('Expand', 'enhanced-autoload-manager'); ?>
+                                        </a>
+                                        <span class="edal-locked-help-text" style="color: #666; font-style: italic; font-size: 12px;">
+                                            <?php esc_html_e('(Unlock to modify)', 'enhanced-autoload-manager'); ?>
+                                        </span>
                                     <?php else: ?>
-                                        <a href="<?php echo esc_url($lock_url); ?>" class="button button-secondary edal-button edal-button-lock" title="<?php esc_attr_e('Lock this autoload value to protect it from changes', 'enhanced-autoload-manager'); ?>">
+                                        <!-- Not locked: Show all buttons -->
+                                        <a href="<?php echo esc_url($lock_url); ?>" class="button button-secondary edal-button edal-button-lock" title="<?php esc_attr_e('Lock this option to prevent automatic changes', 'enhanced-autoload-manager'); ?>">
                                             <span class="dashicons dashicons-lock"></span> <?php esc_html_e('Lock', 'enhanced-autoload-manager'); ?>
                                         </a>
-                                    <?php endif; ?>
-                                    <?php if ($autoload['is_disabled']): ?>
-                                        <a href="<?php echo esc_url($enable_url); ?>" class="button button-secondary edal-button edal-button-enable">
-                                            <span class="dashicons dashicons-visibility"></span> <?php esc_html_e('Enable', 'enhanced-autoload-manager'); ?>
+                                        <?php if ($autoload['is_disabled']): ?>
+                                            <a href="<?php echo esc_url($enable_url); ?>" class="button button-secondary edal-button edal-button-enable">
+                                                <span class="dashicons dashicons-visibility"></span> <?php esc_html_e('Enable', 'enhanced-autoload-manager'); ?>
+                                            </a>
+                                        <?php else: ?>
+                                            <a href="<?php echo esc_url($disable_url); ?>" class="button button-secondary edal-button edal-button-disable">
+                                                <span class="dashicons dashicons-hidden"></span> <?php esc_html_e('Disable', 'enhanced-autoload-manager'); ?>
+                                            </a>
+                                        <?php endif; ?>
+                                        <a href="<?php echo esc_url($delete_url); ?>" class="button button-secondary edal-button edal-button-delete">
+                                            <span class="dashicons dashicons-trash"></span> <?php esc_html_e('Delete', 'enhanced-autoload-manager'); ?>
                                         </a>
-                                    <?php else: ?>
-                                        <a href="<?php echo esc_url($disable_url); ?>" class="button button-secondary edal-button edal-button-disable">
-                                            <span class="dashicons dashicons-hidden"></span> <?php esc_html_e('Disable', 'enhanced-autoload-manager'); ?>
+                                        <a href="#" class="button button-secondary edal-button edal-button-expand" data-option="<?php echo esc_attr( $autoload['option_value'] ); ?>">
+                                            <span class="dashicons dashicons-editor-expand"></span> <?php esc_html_e('Expand', 'enhanced-autoload-manager'); ?>
                                         </a>
                                     <?php endif; ?>
-                                    <a href="<?php echo esc_url($delete_url); ?>" class="button button-secondary edal-button edal-button-delete">
-                                        <span class="dashicons dashicons-trash"></span> <?php esc_html_e('Delete', 'enhanced-autoload-manager'); ?>
-                                    </a>
-                                    <a href="#" class="button button-secondary edal-button edal-button-expand" data-option="<?php echo esc_attr( $autoload['option_value'] ); ?>">
-                                        <span class="dashicons dashicons-editor-expand"></span> <?php esc_html_e('Expand', 'enhanced-autoload-manager'); ?>
-                                    </a>
                                 </td>
                             </tr>
                         <?php endforeach; ?>
@@ -639,7 +771,7 @@ class Enhanced_Autoload_Manager {
     }
 
     // Function to determine if an autoload option is core
-    function is_core_autoload($option_name) {
+    private function is_core_autoload($option_name) {
         $core_autoloads = [
             '_transient_wp_core_block_css_files', 'rewrite_rules', 'wp_user_roles', 'cron', 'widget_', 'sidebars_widgets',
             'active_plugins', 'siteurl', 'home', 'admin_email', 'blogname', 'blogdescription', 'uploads_use_yearmonth_folders',
@@ -666,10 +798,16 @@ class Enhanced_Autoload_Manager {
         return false;
     }
 
-    
+
     // Handle the actions for deleting and disabling autoloads
-    function handle_actions() {
+    public function handle_actions() {
         if (!isset($_GET['page']) || $_GET['page'] !== 'enhanced-autoload-manager') {
+            return;
+        }
+
+        // Authorization: nonces guard against CSRF, but destructive actions also
+        // require the capability. This runs on admin_init for every admin user.
+        if (!current_user_can('manage_options')) {
             return;
         }
 
@@ -746,10 +884,18 @@ class Enhanced_Autoload_Manager {
 
         if ($action === 'delete') {
             delete_option($option_name);
+
             // Remove from disabled list if it was there
             $disabled_autoloads = get_option('edal_disabled_autoloads', array());
             $disabled_autoloads = array_diff($disabled_autoloads, array($option_name));
             update_option('edal_disabled_autoloads', $disabled_autoloads);
+
+            // Remove from locked list if it was there
+            $locked_autoloads = get_option('edal_locked_autoloads', array());
+            if (isset($locked_autoloads[$option_name])) {
+                unset($locked_autoloads[$option_name]);
+                update_option('edal_locked_autoloads', $locked_autoloads);
+            }
         } elseif ($action === 'disable') {
             $current_value = get_option($option_name);
             if ($current_value !== false) {
@@ -771,16 +917,21 @@ class Enhanced_Autoload_Manager {
                 update_option('edal_disabled_autoloads', $disabled_autoloads);
             }
         } elseif ($action === 'lock') {
-            // Lock the autoload value
+            // Lock BOTH the autoload flag AND the option value
             global $wpdb;
             $current_autoload = $wpdb->get_var($wpdb->prepare(
                 "SELECT autoload FROM {$wpdb->options} WHERE option_name = %s",
                 $option_name
             ));
-            
+
             if ($current_autoload !== null) {
                 $locked_autoloads = get_option('edal_locked_autoloads', array());
-                $locked_autoloads[$option_name] = $current_autoload;
+                // Store as array with autoload flag, value, and timestamp
+                $locked_autoloads[$option_name] = array(
+                    'autoload' => $current_autoload,
+                    'value' => get_option($option_name),
+                    'locked_at' => time()
+                );
                 update_option('edal_locked_autoloads', $locked_autoloads);
             }
         } elseif ($action === 'unlock') {
@@ -793,7 +944,7 @@ class Enhanced_Autoload_Manager {
         }
 
         // Clear cache before redirecting
-        wp_cache_delete('alloptions');
+        wp_cache_delete('alloptions', 'options');
         delete_option('edal_total_autoload_size');
 
         // Preserve current filters when redirecting
@@ -845,9 +996,9 @@ class Enhanced_Autoload_Manager {
             wp_send_json_error(array('message' => __('You do not have permission to perform this action.', 'enhanced-autoload-manager')));
         }
         
+        // calculate_total_autoload_size() already persists the value (autoload=no).
         $total_autoload_size = $this->calculate_total_autoload_size();
-        update_option('edal_total_autoload_size', $total_autoload_size);
-        
+
         wp_send_json_success(array(
             'message' => __('Data refreshed successfully.', 'enhanced-autoload-manager'),
             'total_size_mb' => round($total_autoload_size / 1024 / 1024, 2)
@@ -866,7 +1017,7 @@ class Enhanced_Autoload_Manager {
             'edal_total_autoload_size' => get_option('edal_total_autoload_size', 0)
         );
         
-        $filename = 'autoload-settings-' . date('Y-m-d-H-i-s') . '.json';
+        $filename = 'autoload-settings-' . gmdate('Y-m-d-H-i-s') . '.json';
         
         wp_send_json_success(array(
             'export_data' => $settings,

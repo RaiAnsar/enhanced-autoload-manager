@@ -16,3 +16,16 @@ Thumbs.db
 # Temporary files
 *.tmp
 *.temp
+
+# Secrets — never commit SVN/WordPress.org credentials
+credentials.md
+**/credentials.md
+
+# WordPress core (kept on disk for local testing only, not part of the plugin repo)
+wordpress/
+
+# SVN working-copy internals (the deploy checkout lives here; its metadata is not git's job)
+.svn/
+**/.svn/
+# SVN release-tag snapshots are managed by SVN, not git (only trunk/ is tracked here)
+enhanced-autoload-manager-svn/tags/

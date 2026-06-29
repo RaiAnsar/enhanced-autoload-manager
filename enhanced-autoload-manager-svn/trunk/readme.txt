@@ -1,9 +1,9 @@
 === Enhanced Autoload Manager ===
 Contributors: raiansar
-Tags: autoload, performance, database, optimization, speed
+Tags: autoload, autoloads, autoload manager, enhanced autoload, autoload optimization, performance, database cleanup, wordpress optimization, site speed, database manager
 Requires at least: 5.0
-Tested up to: 6.8
-Stable tag: 1.6.2
+Tested up to: 7.0
+Stable tag: 1.6.4
 Requires PHP: 7.4
 License: GPLv3 or later
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
@@ -63,54 +63,31 @@ Yes, the plugin includes export and import functionality to backup your autoload
 - Filter options by core WordPress, WooCommerce, or Elementor
 - Mobile-responsive design for better usability on all devices
 - Simple, modern, and intuitive interface with no dependencies on external libraries
-- Autoload locking feature to protect important settings from being changed by updates
-- Visual indicators for locked autoload options with easy lock/unlock controls
 
 == Changelog ==
 
-= 1.6.2 =
-* Improved table layout with better column width distribution
-* Reduced width of Autoload #, Size, and Status columns
-* Increased width of Option Name and Actions columns to prevent button wrapping
-* Reordered action buttons: Lock, Disable/Enable, Delete, Expand for better workflow
-* Better utilization of screen space for improved user experience
+= 1.6.4 =
+* Fixed: Disabled options no longer disappear from the list — they now stay visible (with an Enable button) and the Disabled tab works again
+* Fixed: Removed an N+1 database query in total-size calculation (one query per option on every load/refresh); total autoload size is now computed from the already-loaded options
+* Fixed: Prevented a fatal "division by zero" when an invalid items-per-page value was passed in the URL
+* Security: Added explicit capability checks to all delete/disable/enable/lock actions (in addition to existing nonce checks)
+* Fixed: Corrected the object cache group when clearing the alloptions cache after an action
+* Compatibility: Tested up to WordPress 7.0; verified clean on PHP 8.5
+* Maintenance: Replaced deprecated date()/current_time('timestamp') calls; removed a redundant option write
 
-= 1.5.10 =
-* Fixed pagination showing when "All" items is selected
-* Fixed pagination security nonce errors - all pagination links now properly include nonces
-* Improved pagination logic for limited views (10, 20, 50, 100 items)
-* Completely removed pagination when viewing all items
-
-= 1.5.9 =
-* Fixed "All" items per page showing only 20 items instead of all entries
-* Added autoload locking feature to protect important settings
-* Lock/unlock buttons allow you to preserve autoload values across WordPress updates
-* Locked autoloads are automatically restored if changed by WordPress core or plugin updates
-* Visual indicators show which options are currently locked
-* Improved pagination logic for "All" items view
-
-= 1.5.8 =
-* Fixed filter state preservation on delete/disable/enable actions
-* Action buttons now maintain current search, mode, and sort settings
-* Redirects after actions preserve all filter parameters
-* Improved user experience with consistent filtering
-
-= 1.5.7 =
-* Fixed search form security check error - added missing nonce field
-* Fixed clear search link to include proper nonce
-* Search functionality now properly validates security tokens
-
-= 1.5.6 =
-* Fixed AJAX refresh data error - corrected nonce verification issue
-* Fixed export functionality returning undefined filename
-* Corrected data key mismatch in refresh response (total_size_mb)
-* Export now properly includes filename with timestamp
-
-= 1.5.5 =
-* CRITICAL FIX: Added nonce security to all navigation links
-* Fixed security check failed error on all plugin operations
-* Improved URL generation with proper WordPress nonce handling
-* All navigation tabs now include proper security tokens
+= 1.6.3 =
+* CRITICAL FIX: Locking feature now reliably prevents automatic modifications from WordPress/plugin updates
+* Fixed: Locked options now preserve BOTH autoload flag AND option value (not just flag)
+* Fixed: Restore hooks now run on init, admin_init, updated_option, and upgrader_process_complete
+* Fixed: Real-time protection against option value changes via updated_option hook
+* Fixed: UI now hides Disable/Delete buttons for locked options to prevent user confusion
+* Fixed: Deleted options are now properly removed from lock list
+* Added: Admin notices when locked options are automatically restored
+* Added: Automatic upgrade of old lock data format (string) to new format (array with value + timestamp)
+* Added: Debug logging when WP_DEBUG is enabled for lock violations
+* Added: Helpful tooltip "(Unlock to modify)" for locked options
+* Improved: Lock data now includes autoload flag, full option value, and locked_at timestamp
+* Improved: Prevents multiple restore executions in same request for better performance
 
 = 1.5.3 =
 * Fixed Plugin Check compliance issues

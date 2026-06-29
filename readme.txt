@@ -2,8 +2,8 @@
 Contributors: raiansar
 Tags: autoload, autoloads, autoload manager, enhanced autoload, autoload optimization, performance, database cleanup, wordpress optimization, site speed, database manager
 Requires at least: 5.0
-Tested up to: 6.8.3
-Stable tag: 1.6.3
+Tested up to: 7.0
+Stable tag: 1.6.4
 Requires PHP: 7.4
 License: GPLv3 or later
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
@@ -65,6 +65,15 @@ Yes, the plugin includes export and import functionality to backup your autoload
 - Simple, modern, and intuitive interface with no dependencies on external libraries
 
 == Changelog ==
+
+= 1.6.4 =
+* Fixed: Disabled options no longer disappear from the list — they now stay visible (with an Enable button) and the Disabled tab works again
+* Fixed: Removed an N+1 database query in total-size calculation (one query per option on every load/refresh); total autoload size is now computed from the already-loaded options
+* Fixed: Prevented a fatal "division by zero" when an invalid items-per-page value was passed in the URL
+* Security: Added explicit capability checks to all delete/disable/enable/lock actions (in addition to existing nonce checks)
+* Fixed: Corrected the object cache group when clearing the alloptions cache after an action
+* Compatibility: Tested up to WordPress 7.0; verified clean on PHP 8.5
+* Maintenance: Replaced deprecated date()/current_time('timestamp') calls; removed a redundant option write
 
 = 1.6.3 =
 * CRITICAL FIX: Locking feature now reliably prevents automatic modifications from WordPress/plugin updates

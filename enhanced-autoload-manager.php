@@ -3,14 +3,14 @@
 Plugin Name: Enhanced Autoload Manager
 Plugin URI: https://raiansar.com/enhanced-autoload-manager
 Description: Manages autoloaded data in the WordPress database, allowing for individual deletion or disabling of autoload entries.
-Version: 1.6.3
+Version: 1.6.4
 Author: Rai Ansar
 Author URI: https://raiansar.com
 License: GPLv3 or later
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 Text Domain: enhanced-autoload-manager
 Requires at least: 5.0
-Tested up to: 6.8.3
+Tested up to: 7.0
 Requires PHP: 7.4
 */
 
@@ -24,7 +24,7 @@ if (!defined('EDAL_PLUGIN_PATH')) {
     define('EDAL_PLUGIN_PATH', plugin_dir_path(__FILE__));
 }
 if (!defined('EDAL_VERSION')) {
-    define('EDAL_VERSION', '1.6.3');
+    define('EDAL_VERSION', '1.6.4');
 }
 
 class Enhanced_Autoload_Manager {
@@ -140,7 +140,7 @@ class Enhanced_Autoload_Manager {
                 $locked_data = array(
                     'autoload' => $locked_data,
                     'value' => get_option($option_name),
-                    'locked_at' => current_time('timestamp')
+                    'locked_at' => time()
                 );
                 // Save upgraded format
                 $locked_autoloads[$option_name] = $locked_data;
@@ -262,15 +262,26 @@ class Enhanced_Autoload_Manager {
 
     // Function to get and process autoload data
     private function get_autoload_data($mode = 'basic', $search = '') {
-        global $wpdb;
-        
         // Get all options
         $all_options = wp_load_alloptions();
         $autoloads = [];
         $disabled_autoloads = get_option('edal_disabled_autoloads', array());
         $locked_autoloads = get_option('edal_locked_autoloads', array());
-        
-        foreach ($all_options as $key => $value) {
+
+        // wp_load_alloptions() only returns autoload=yes options. Disabled
+        // options (autoload=no) must be pulled in explicitly or they vanish from
+        // every view — including the Disabled tab and their own Enable button.
+        $values = $all_options;
+        foreach ($disabled_autoloads as $name) {
+            if (!isset($values[$name])) {
+                $disabled_value = get_option($name, null);
+                if ($disabled_value !== null) {
+                    $values[$name] = maybe_serialize($disabled_value);
+                }
+            }
+        }
+
+        foreach ($values as $key => $value) {
             // If search is provided, filter options by name
             if (!empty($search) && stripos($key, $search) === false) {
                 continue;
@@ -279,7 +290,7 @@ class Enhanced_Autoload_Manager {
             $autoloads[] = [
                 'option_name' => $key,
                 'option_value' => $value,
-                'option_size' => strlen($value),
+                'option_size' => strlen((string) $value),
                 'is_core' => $this->is_core_autoload($key),
                 'is_woocommerce' => strpos($key, 'woocommerce') === 0,
                 'is_elementor' => strpos($key, '_elementor') === 0,
@@ -312,21 +323,13 @@ class Enhanced_Autoload_Manager {
     
     // Calculate total autoload size
     private function calculate_total_autoload_size() {
-        global $wpdb;
-        $all_options = wp_load_alloptions();
+        // wp_load_alloptions() already returns only autoloaded options, so the
+        // sum of their value sizes is the total autoload size. No per-option
+        // query needed (the old version ran one SELECT per option — an N+1 that
+        // fired on every page load and refresh).
         $total_size = 0;
-
-        foreach ($all_options as $key => $value) {
-            $option_row = $wpdb->get_row(
-                $wpdb->prepare(
-                    "SELECT autoload FROM {$wpdb->options} WHERE option_name = %s",
-                    $key
-                )
-            );
-
-            if ($option_row && $option_row->autoload === 'yes') {
-                $total_size += strlen($value);
-            }
+        foreach (wp_load_alloptions() as $value) {
+            $total_size += strlen((string) $value);
         }
 
         update_option('edal_total_autoload_size', $total_size, 'no');
@@ -360,6 +363,10 @@ class Enhanced_Autoload_Manager {
         // Now safe to process parameters
         $mode = isset($_GET['mode']) ? sanitize_text_field(wp_unslash($_GET['mode'])) : 'basic';
         $count = isset($_GET['count']) ? intval(wp_unslash($_GET['count'])) : 10;
+        // -1 means "show all"; any other non-positive value would divide by zero below.
+        if ($count !== -1 && $count < 1) {
+            $count = 10;
+        }
         $search = isset($_GET['search']) ? sanitize_text_field(wp_unslash($_GET['search'])) : '';
         $paged = isset($_GET['paged']) ? max(1, intval(wp_unslash($_GET['paged']))) : 1;
         $orderby = isset($_GET['orderby']) ? sanitize_text_field(wp_unslash($_GET['orderby'])) : 'size';
@@ -798,6 +805,12 @@ class Enhanced_Autoload_Manager {
             return;
         }
 
+        // Authorization: nonces guard against CSRF, but destructive actions also
+        // require the capability. This runs on admin_init for every admin user.
+        if (!current_user_can('manage_options')) {
+            return;
+        }
+
         // Skip if this is a redirect from a completed action
         if (isset($_GET['action_complete'])) {
             return;
@@ -917,7 +930,7 @@ class Enhanced_Autoload_Manager {
                 $locked_autoloads[$option_name] = array(
                     'autoload' => $current_autoload,
                     'value' => get_option($option_name),
-                    'locked_at' => current_time('timestamp')
+                    'locked_at' => time()
                 );
                 update_option('edal_locked_autoloads', $locked_autoloads);
             }
@@ -931,7 +944,7 @@ class Enhanced_Autoload_Manager {
         }
 
         // Clear cache before redirecting
-        wp_cache_delete('alloptions');
+        wp_cache_delete('alloptions', 'options');
         delete_option('edal_total_autoload_size');
 
         // Preserve current filters when redirecting
@@ -983,9 +996,9 @@ class Enhanced_Autoload_Manager {
             wp_send_json_error(array('message' => __('You do not have permission to perform this action.', 'enhanced-autoload-manager')));
         }
         
+        // calculate_total_autoload_size() already persists the value (autoload=no).
         $total_autoload_size = $this->calculate_total_autoload_size();
-        update_option('edal_total_autoload_size', $total_autoload_size);
-        
+
         wp_send_json_success(array(
             'message' => __('Data refreshed successfully.', 'enhanced-autoload-manager'),
             'total_size_mb' => round($total_autoload_size / 1024 / 1024, 2)
@@ -1004,7 +1017,7 @@ class Enhanced_Autoload_Manager {
             'edal_total_autoload_size' => get_option('edal_total_autoload_size', 0)
         );
         
-        $filename = 'autoload-settings-' . date('Y-m-d-H-i-s') . '.json';
+        $filename = 'autoload-settings-' . gmdate('Y-m-d-H-i-s') . '.json';
         
         wp_send_json_success(array(
             'export_data' => $settings,
