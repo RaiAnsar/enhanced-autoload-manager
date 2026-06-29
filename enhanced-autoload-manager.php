@@ -135,6 +135,8 @@ class Enhanced_Autoload_Manager {
             return;
         }
         global $wpdb;
+        // Direct write: pre-6.6 WordPress has no API to toggle only the autoload flag.
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
         $wpdb->update(
             $wpdb->options,
             array('autoload' => $enabled ? 'yes' : 'no'),
@@ -177,7 +179,9 @@ class Enhanced_Autoload_Manager {
                 $locked_autoloads[$option_name] = $locked_data;
             }
 
-            // Raw autoload string from the DB (null = the option no longer exists).
+            // Read the raw autoload column (null = the option no longer exists). Must
+            // be a live, uncached read — the lock check needs the actual DB state.
+            // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
             $current_autoload = $wpdb->get_var($wpdb->prepare(
                 "SELECT autoload FROM {$wpdb->options} WHERE option_name = %s",
                 $option_name
@@ -223,17 +227,17 @@ class Enhanced_Autoload_Manager {
             add_action('admin_notices', function() use ($restored_count, $restored_options) {
                 echo '<div class="notice notice-info is-dismissible">';
                 echo '<p><strong>' . esc_html__('Enhanced Autoload Manager:', 'enhanced-autoload-manager') . '</strong> ';
-                printf(
-                    esc_html(
-                        _n(
-                            '%d locked option was automatically restored.',
-                            '%d locked options were automatically restored.',
-                            $restored_count,
-                            'enhanced-autoload-manager'
-                        )
+                $restored_message = sprintf(
+                    /* translators: %d: number of locked options that were automatically restored */
+                    _n(
+                        '%d locked option was automatically restored.',
+                        '%d locked options were automatically restored.',
+                        $restored_count,
+                        'enhanced-autoload-manager'
                     ),
-                    $restored_count
+                    absint($restored_count)
                 );
+                echo esc_html($restored_message);
                 echo ' <a href="' . esc_url(admin_url('tools.php?page=enhanced-autoload-manager')) . '">' .
                      esc_html__('View details', 'enhanced-autoload-manager') . '</a>';
                 echo '</p>';
@@ -268,8 +272,9 @@ class Enhanced_Autoload_Manager {
             update_option($option_name, $locked_data['value'], $this->is_autoload_enabled($locked_data['autoload']));
             add_action( 'updated_option', [ $this, 'check_locked_option' ], 10, 3 );
 
-            // Log the attempt (optional - for debugging)
+            // Log the attempt (debug only — gated behind WP_DEBUG).
             if (defined('WP_DEBUG') && WP_DEBUG) {
+                // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
                 error_log(sprintf(
                     'Enhanced Autoload Manager: Prevented modification of locked option "%s"',
                     $option_name
@@ -958,6 +963,8 @@ class Enhanced_Autoload_Manager {
         } elseif ($action === 'lock') {
             // Lock BOTH the autoload flag AND the option value
             global $wpdb;
+            // Read the raw autoload column to capture the current state at lock time.
+            // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
             $current_autoload = $wpdb->get_var($wpdb->prepare(
                 "SELECT autoload FROM {$wpdb->options} WHERE option_name = %s",
                 $option_name

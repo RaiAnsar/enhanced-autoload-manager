@@ -78,7 +78,7 @@ Yes, the plugin includes export and import functionality to backup your autoload
 * Fixed: Prevented a fatal "division by zero" when an invalid items-per-page value was passed in the URL
 * Security: Added explicit capability checks to all delete/disable/enable/lock actions (in addition to existing nonce checks)
 * Fixed: Corrected the object cache group when clearing the alloptions cache after an action
-* Compatibility: Tested up to WordPress 7.0; verified clean on PHP 8.5
+* Compatibility: Tested up to WordPress 7.0; verified clean on PHP 8.5 and against real WP 6.8 (Plugin Check passes with no errors)
 * Maintenance: Replaced deprecated date()/current_time('timestamp') calls; removed a redundant option write
 
 = 1.6.3 =
