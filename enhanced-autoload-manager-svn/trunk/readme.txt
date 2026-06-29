@@ -67,6 +67,9 @@ Yes, the plugin includes export and import functionality to backup your autoload
 == Changelog ==
 
 = 1.6.4 =
+* Fixed: Locking is now reliable on WordPress 6.6+. Locks compared the raw autoload column ('yes'/'no'), but modern WordPress uses 'on'/'off'/'auto-on'/'auto-off'/'auto' and normalizes values on save — so locked options were being "restored" on every page load with repeated notices. Locks now track the autoload state semantically.
+* Fixed: Locked options are now restored immediately after a plugin/theme/WordPress update (the once-per-request guard previously skipped the post-update restore).
+* Fixed: Locked option values are now compared in an object/array-safe way, so complex values no longer trigger false restores.
 * Fixed: Disabled options no longer disappear from the list — they now stay visible (with an Enable button) and the Disabled tab works again
 * Fixed: Removed an N+1 database query in total-size calculation (one query per option on every load/refresh); total autoload size is now computed from the already-loaded options
 * Fixed: Prevented a fatal "division by zero" when an invalid items-per-page value was passed in the URL

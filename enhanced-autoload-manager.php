@@ -115,11 +115,42 @@ class Enhanced_Autoload_Manager {
         return $links;
     }
 
+    // Whether a raw `autoload` column value means "autoloaded". Handles the
+    // WordPress 6.6+ values ('yes','on','auto-on','auto'), legacy 'yes', and a
+    // stored boolean. Everything else ('no','off','auto-off') means not autoloaded.
+    private function is_autoload_enabled($raw) {
+        if (is_bool($raw)) {
+            return $raw;
+        }
+        if (function_exists('wp_autoload_values_to_autoload')) {
+            return in_array($raw, wp_autoload_values_to_autoload(), true);
+        }
+        return 'yes' === $raw;
+    }
+
+    // Set only the autoload flag for an option, across WordPress versions.
+    private function set_autoload($option_name, $enabled) {
+        if (function_exists('wp_set_option_autoload')) {
+            wp_set_option_autoload($option_name, (bool) $enabled);
+            return;
+        }
+        global $wpdb;
+        $wpdb->update(
+            $wpdb->options,
+            array('autoload' => $enabled ? 'yes' : 'no'),
+            array('option_name' => $option_name)
+        );
+        wp_cache_delete($option_name, 'options');
+        wp_cache_delete('alloptions', 'options');
+    }
+
     // Restore locked autoload values - Enhanced version
-    public function restore_locked_autoloads() {
-        //  Prevent multiple executions in same request
+    public function restore_locked_autoloads($force = false) {
+        // Run once per request (init + admin_init) for performance, but allow the
+        // post-update hook to force a re-run: init/admin_init fire BEFORE an upgrade
+        // modifies options, so without the force flag the post-update restore is lost.
         static $already_run = false;
-        if ($already_run) {
+        if ($already_run && !$force) {
             return 0;
         }
         $already_run = true;
@@ -146,49 +177,41 @@ class Enhanced_Autoload_Manager {
                 $locked_autoloads[$option_name] = $locked_data;
             }
 
-            // Get current values
+            // Raw autoload string from the DB (null = the option no longer exists).
             $current_autoload = $wpdb->get_var($wpdb->prepare(
                 "SELECT autoload FROM {$wpdb->options} WHERE option_name = %s",
                 $option_name
             ));
-            $current_value = get_option($option_name);
-
-            $needs_restore = false;
-
-            // Check if autoload flag changed
-            if ($current_autoload !== null && $current_autoload !== $locked_data['autoload']) {
-                $needs_restore = true;
+            if (null === $current_autoload) {
+                continue; // Option was deleted; nothing to restore.
             }
 
-            // Check if value changed (if we have locked value)
-            if (isset($locked_data['value']) && $current_value !== false && $current_value !== $locked_data['value']) {
-                $needs_restore = true;
+            // Compare by autoloaded-or-not, NOT the raw string. WordPress 6.6+ uses
+            // 'on'/'off'/'auto-on'/'auto-off'/'auto' and normalizes the autoload value
+            // on write, so a raw-string compare mis-fires and re-restores every request.
+            $locked_enabled  = $this->is_autoload_enabled($locked_data['autoload']);
+            $current_enabled = $this->is_autoload_enabled($current_autoload);
+
+            $current_value    = get_option($option_name);
+            $has_value        = array_key_exists('value', $locked_data);
+            $value_changed    = $has_value
+                && maybe_serialize($current_value) !== maybe_serialize($locked_data['value']);
+            $autoload_changed = $current_enabled !== $locked_enabled;
+
+            if (!$value_changed && !$autoload_changed) {
+                continue;
             }
 
-            if ($needs_restore) {
-                // Restore autoload flag
-                if ($current_autoload !== $locked_data['autoload']) {
-                    $wpdb->update(
-                        $wpdb->options,
-                        array('autoload' => $locked_data['autoload']),
-                        array('option_name' => $option_name),
-                        array('%s'),
-                        array('%s')
-                    );
-                }
-
-                // Restore value (if we have it)
-                if (isset($locked_data['value']) && $current_value !== $locked_data['value']) {
-                    update_option($option_name, $locked_data['value'], $locked_data['autoload']);
-                }
-
-                // Clear caches
-                wp_cache_delete($option_name, 'options');
-                wp_cache_delete('alloptions', 'options');
-
-                $restored_count++;
-                $restored_options[] = $option_name;
+            if ($value_changed) {
+                // One normalized write restores the value AND the autoload flag.
+                update_option($option_name, $locked_data['value'], $locked_enabled);
+            } elseif ($autoload_changed) {
+                // Value is intact; only the autoload flag drifted.
+                $this->set_autoload($option_name, $locked_enabled);
             }
+
+            $restored_count++;
+            $restored_options[] = $option_name;
         }
 
         // Update locked autoloads if we upgraded any
@@ -233,15 +256,15 @@ class Enhanced_Autoload_Manager {
         }
 
         $locked_data = $locked_autoloads[$option_name];
-        if (!is_array($locked_data)) {
-            return; // Old format, will be handled by restore_locked_autoloads()
+        if (!is_array($locked_data) || !array_key_exists('value', $locked_data)) {
+            return; // Old/partial format; the periodic restore will handle it.
         }
 
-        // Check if value was changed
-        if (isset($locked_data['value']) && $new_value !== $locked_data['value']) {
+        // Object/array-safe comparison (raw !== treats two equal objects as different).
+        if (maybe_serialize($new_value) !== maybe_serialize($locked_data['value'])) {
             // Immediately restore the locked value
             remove_action( 'updated_option', [ $this, 'check_locked_option' ], 10 );
-            update_option($option_name, $locked_data['value'], $locked_data['autoload']);
+            update_option($option_name, $locked_data['value'], $this->is_autoload_enabled($locked_data['autoload']));
             add_action( 'updated_option', [ $this, 'check_locked_option' ], 10, 3 );
 
             // Log the attempt (optional - for debugging)
@@ -255,9 +278,10 @@ class Enhanced_Autoload_Manager {
     }
 
     // Restore locked options after WordPress/plugin updates
-    public function restore_after_update($upgrader_object, $options) {
-        // Trigger restore after any update
-        $this->restore_locked_autoloads();
+    public function restore_after_update($upgrader_object = null, $options = array()) {
+        // Force past the once-per-request guard: init/admin_init already ran earlier
+        // in this request, BEFORE the upgrade modified the options.
+        $this->restore_locked_autoloads(true);
     }
 
     // Function to get and process autoload data
@@ -926,9 +950,10 @@ class Enhanced_Autoload_Manager {
 
             if ($current_autoload !== null) {
                 $locked_autoloads = get_option('edal_locked_autoloads', array());
-                // Store as array with autoload flag, value, and timestamp
+                // Store the autoload state as a normalized boolean (not the raw
+                // column string, which varies by WP version), plus value + timestamp.
                 $locked_autoloads[$option_name] = array(
-                    'autoload' => $current_autoload,
+                    'autoload' => $this->is_autoload_enabled($current_autoload),
                     'value' => get_option($option_name),
                     'locked_at' => time()
                 );
