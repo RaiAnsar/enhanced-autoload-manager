@@ -3,7 +3,7 @@
 Plugin Name: Enhanced Autoload Manager
 Plugin URI: https://raiansar.com/enhanced-autoload-manager
 Description: Manages autoloaded data in the WordPress database, allowing for individual deletion or disabling of autoload entries.
-Version: 1.6.4
+Version: 1.6.5
 Author: Rai Ansar
 Author URI: https://raiansar.com
 License: GPLv3 or later
@@ -24,7 +24,7 @@ if (!defined('EDAL_PLUGIN_PATH')) {
     define('EDAL_PLUGIN_PATH', plugin_dir_path(__FILE__));
 }
 if (!defined('EDAL_VERSION')) {
-    define('EDAL_VERSION', '1.6.4');
+    define('EDAL_VERSION', '1.6.5');
 }
 
 class Enhanced_Autoload_Manager {
@@ -35,6 +35,8 @@ class Enhanced_Autoload_Manager {
         add_action( 'admin_menu', [ $this, 'add_menu_item' ] );
         // Handle actions for deleting and disabling autoloads
         add_action( 'admin_init', [ $this, 'handle_actions' ] );
+        // One-time heal for options "disabled" under <=1.6.3 that never actually changed
+        add_action( 'admin_init', [ $this, 'maybe_reconcile_disabled' ] );
         // Restore locked autoloads on multiple hooks to catch all scenarios
         add_action( 'admin_init', [ $this, 'restore_locked_autoloads' ] ); // Admin page loads
         add_action( 'init', [ $this, 'restore_locked_autoloads' ] );       // Every request (inc. cron)
@@ -144,6 +146,35 @@ class Enhanced_Autoload_Manager {
         );
         wp_cache_delete($option_name, 'options');
         wp_cache_delete('alloptions', 'options');
+    }
+
+    // One-time heal for options that were "disabled" under <= 1.6.3, where the
+    // autoload flag never actually changed (update_option short-circuited on the
+    // unchanged value). Honours the user's recorded intent by actually disabling
+    // them now. Locked options are left untouched. Runs once per site.
+    public function maybe_reconcile_disabled() {
+        if (get_option('edal_disabled_reconciled')) {
+            return;
+        }
+        if (!current_user_can('manage_options')) {
+            return; // Wait for an admin pageview; don't run for low-privilege users.
+        }
+
+        $disabled = get_option('edal_disabled_autoloads', array());
+        $locked   = get_option('edal_locked_autoloads', array());
+        global $wpdb;
+        foreach ($disabled as $option_name) {
+            if (isset($locked[$option_name]) || get_option($option_name, null) === null) {
+                continue;
+            }
+            // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+            $raw = $wpdb->get_var($wpdb->prepare("SELECT autoload FROM {$wpdb->options} WHERE option_name = %s", $option_name));
+            if ($this->is_autoload_enabled($raw)) {
+                $this->set_autoload($option_name, false);
+            }
+        }
+
+        update_option('edal_disabled_reconciled', 1);
     }
 
     // Restore locked autoload values - Enhanced version
@@ -317,10 +348,15 @@ class Enhanced_Autoload_Manager {
                 continue;
             }
             
+            // Some object caches hand back already-unserialized (array/object) values
+            // in alloptions. maybe_serialize() keeps everything a string so strlen()
+            // and esc_attr() never get an array (the cause of the 1.6.3 fatal), and the
+            // reported size matches what is actually stored.
+            $serialized_value = maybe_serialize($value);
             $autoloads[] = [
                 'option_name' => $key,
-                'option_value' => $value,
-                'option_size' => strlen((string) $value),
+                'option_value' => $serialized_value,
+                'option_size' => strlen($serialized_value),
                 'is_core' => $this->is_core_autoload($key),
                 'is_woocommerce' => strpos($key, 'woocommerce') === 0,
                 'is_elementor' => strpos($key, '_elementor') === 0,
@@ -359,7 +395,7 @@ class Enhanced_Autoload_Manager {
         // fired on every page load and refresh).
         $total_size = 0;
         foreach (wp_load_alloptions() as $value) {
-            $total_size += strlen((string) $value);
+            $total_size += strlen(maybe_serialize($value));
         }
 
         update_option('edal_total_autoload_size', $total_size, 'no');

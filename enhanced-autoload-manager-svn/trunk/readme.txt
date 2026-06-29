@@ -3,7 +3,7 @@ Contributors: raiansar
 Tags: autoload, autoload manager, performance, database cleanup, optimization
 Requires at least: 5.0
 Tested up to: 7.0
-Stable tag: 1.6.4
+Stable tag: 1.6.5
 Requires PHP: 7.4
 License: GPLv3 or later
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
@@ -65,6 +65,10 @@ Yes, the plugin includes export and import functionality to backup your autoload
 - Simple, modern, and intuitive interface with no dependencies on external libraries
 
 == Changelog ==
+
+= 1.6.5 =
+* Fixed: Fatal error ("strlen(): Argument #1 must be of type string, array given") on sites whose object cache returns array values in the options cache. Option values are now always handled as strings, so the size column and value preview can't crash.
+* Fixed: Options that were "disabled" in an older version but whose autoload flag never actually changed are now automatically corrected on the next admin visit (one-time, locked options excluded), so the database matches what the plugin shows.
 
 = 1.6.4 =
 * Fixed: Disable/Enable now actually change the autoload flag. They previously re-saved the option with its unchanged value, which WordPress short-circuits before applying the autoload change — so "disabled" options kept autoloading. Now uses the dedicated autoload setter.
