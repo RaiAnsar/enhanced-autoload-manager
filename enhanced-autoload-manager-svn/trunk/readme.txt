@@ -1,6 +1,6 @@
 === Enhanced Autoload Manager ===
 Contributors: raiansar
-Tags: autoload, autoloads, autoload manager, enhanced autoload, autoload optimization, performance, database cleanup, wordpress optimization, site speed, database manager
+Tags: autoload, autoload manager, performance, database cleanup, optimization
 Requires at least: 5.0
 Tested up to: 7.0
 Stable tag: 1.6.4
@@ -67,6 +67,9 @@ Yes, the plugin includes export and import functionality to backup your autoload
 == Changelog ==
 
 = 1.6.4 =
+* Fixed: Disable/Enable now actually change the autoload flag. They previously re-saved the option with its unchanged value, which WordPress short-circuits before applying the autoload change — so "disabled" options kept autoloading. Now uses the dedicated autoload setter.
+* Fixed: Bulk actions now respect locked options (they are skipped, matching the per-row buttons) and no longer leave orphaned lock entries.
+* Improved: The plugin's own lock storage is no longer autoloaded, so locking large options can't bloat the autoload footprint.
 * Fixed: Locking is now reliable on WordPress 6.6+. Locks compared the raw autoload column ('yes'/'no'), but modern WordPress uses 'on'/'off'/'auto-on'/'auto-off'/'auto' and normalizes values on save — so locked options were being "restored" on every page load with repeated notices. Locks now track the autoload state semantically.
 * Fixed: Locked options are now restored immediately after a plugin/theme/WordPress update (the once-per-request guard previously skipped the post-update restore).
 * Fixed: Locked option values are now compared in an object/array-safe way, so complex values no longer trigger false restores.

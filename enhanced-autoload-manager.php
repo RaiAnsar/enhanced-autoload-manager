@@ -71,9 +71,9 @@ class Enhanced_Autoload_Manager {
         if (!get_option('edal_dismissed_warnings')) {
             add_option('edal_dismissed_warnings', array());
         }
-        // Store locked autoloads
+        // Store locked autoloads (non-autoloaded — can hold full option values)
         if (!get_option('edal_locked_autoloads')) {
-            add_option('edal_locked_autoloads', array());
+            add_option('edal_locked_autoloads', array(), '', 'no');
         }
     }
 
@@ -214,8 +214,9 @@ class Enhanced_Autoload_Manager {
             $restored_options[] = $option_name;
         }
 
-        // Update locked autoloads if we upgraded any
-        update_option('edal_locked_autoloads', $locked_autoloads);
+        // Update locked autoloads if we upgraded any (kept non-autoloaded — it can
+        // hold full option values and shouldn't bloat alloptions).
+        update_option('edal_locked_autoloads', $locked_autoloads, 'no');
 
         // Show admin notice if options were restored
         if ($restored_count > 0 && is_admin() && !wp_doing_ajax()) {
@@ -395,8 +396,7 @@ class Enhanced_Autoload_Manager {
         $paged = isset($_GET['paged']) ? max(1, intval(wp_unslash($_GET['paged']))) : 1;
         $orderby = isset($_GET['orderby']) ? sanitize_text_field(wp_unslash($_GET['orderby'])) : 'size';
         $order = isset($_GET['order']) ? sanitize_text_field(wp_unslash($_GET['order'])) : 'DESC';
-        $per_page = 20; // Items per page for pagination
-        
+
         // Get filtered autoload data
         $autoloads = $this->get_autoload_data($mode, $search);
 
@@ -852,31 +852,38 @@ class Enhanced_Autoload_Manager {
             $action = sanitize_text_field(wp_unslash($_POST['bulk_action']));
             $selected_options = array_map('sanitize_text_field', wp_unslash($_POST['selected_options']));
             $disabled_autoloads = get_option('edal_disabled_autoloads', array());
-            
+            $locked_autoloads = get_option('edal_locked_autoloads', array());
+
             foreach ($selected_options as $option_name) {
+                // Locked options are protected — skip them (matches the per-row UI,
+                // which hides the action buttons for locked options).
+                if (isset($locked_autoloads[$option_name])) {
+                    continue;
+                }
                 if ($action === 'delete') {
                     delete_option($option_name);
                     // Remove from disabled list if it was there
                     $disabled_autoloads = array_diff($disabled_autoloads, array($option_name));
                 } elseif ($action === 'disable') {
-                    $current_value = get_option($option_name);
-                    if ($current_value !== false) {
-                        update_option($option_name, $current_value, 'no');
+                    if (get_option($option_name, null) !== null) {
+                        // Change ONLY the autoload flag. update_option() with the same
+                        // value short-circuits before applying autoload, so use the
+                        // dedicated setter.
+                        $this->set_autoload($option_name, false);
                         // Add to disabled list if not already there
                         if (!in_array($option_name, $disabled_autoloads)) {
                             $disabled_autoloads[] = $option_name;
                         }
                     }
                 } elseif ($action === 'enable') {
-                    $current_value = get_option($option_name);
-                    if ($current_value !== false) {
-                        update_option($option_name, $current_value, 'yes');
+                    if (get_option($option_name, null) !== null) {
+                        $this->set_autoload($option_name, true);
                         // Remove from disabled list if it was there
                         $disabled_autoloads = array_diff($disabled_autoloads, array($option_name));
                     }
                 }
             }
-            
+
             // Update the disabled autoloads list
             update_option('edal_disabled_autoloads', array_unique($disabled_autoloads));
             
@@ -925,12 +932,14 @@ class Enhanced_Autoload_Manager {
             $locked_autoloads = get_option('edal_locked_autoloads', array());
             if (isset($locked_autoloads[$option_name])) {
                 unset($locked_autoloads[$option_name]);
-                update_option('edal_locked_autoloads', $locked_autoloads);
+                update_option('edal_locked_autoloads', $locked_autoloads, 'no');
             }
         } elseif ($action === 'disable') {
-            $current_value = get_option($option_name);
-            if ($current_value !== false) {
-                update_option($option_name, $current_value, 'no');
+            if (get_option($option_name, null) !== null) {
+                // Change ONLY the autoload flag. update_option() with an unchanged
+                // value returns early before applying the autoload arg, so the old
+                // code never actually disabled autoload — use the dedicated setter.
+                $this->set_autoload($option_name, false);
                 // Add to disabled list if not already there
                 $disabled_autoloads = get_option('edal_disabled_autoloads', array());
                 if (!in_array($option_name, $disabled_autoloads)) {
@@ -939,9 +948,8 @@ class Enhanced_Autoload_Manager {
                 }
             }
         } elseif ($action === 'enable') {
-            $current_value = get_option($option_name);
-            if ($current_value !== false) {
-                update_option($option_name, $current_value, 'yes');
+            if (get_option($option_name, null) !== null) {
+                $this->set_autoload($option_name, true);
                 // Remove from disabled list if it was there
                 $disabled_autoloads = get_option('edal_disabled_autoloads', array());
                 $disabled_autoloads = array_diff($disabled_autoloads, array($option_name));
@@ -964,14 +972,14 @@ class Enhanced_Autoload_Manager {
                     'value' => get_option($option_name),
                     'locked_at' => time()
                 );
-                update_option('edal_locked_autoloads', $locked_autoloads);
+                update_option('edal_locked_autoloads', $locked_autoloads, 'no');
             }
         } elseif ($action === 'unlock') {
             // Unlock the autoload value
             $locked_autoloads = get_option('edal_locked_autoloads', array());
             if (isset($locked_autoloads[$option_name])) {
                 unset($locked_autoloads[$option_name]);
-                update_option('edal_locked_autoloads', $locked_autoloads);
+                update_option('edal_locked_autoloads', $locked_autoloads, 'no');
             }
         }
 
