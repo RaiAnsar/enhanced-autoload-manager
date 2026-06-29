@@ -790,6 +790,13 @@ class Enhanced_Autoload_Manager {
                 );
             ?></p>
             <p class="edal-services"><?php esc_html_e('Specializing in: Custom WordPress Plugins • React.js & Next.js Development • WooCommerce Solutions • Server Management & Optimization', 'enhanced-autoload-manager'); ?></p>
+            <p class="edal-sponsor"><?php
+                printf(
+                    /* translators: %s: link to the VisualSentinel app */
+                    esc_html__('Also by Rai Ansar: %s', 'enhanced-autoload-manager'),
+                    '<a href="' . esc_url('https://visualsentinel.com') . '" target="_blank" rel="noopener">VisualSentinel</a>'
+                );
+            ?></p>
         </div>
         <?php
     }
